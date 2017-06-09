@@ -51,7 +51,7 @@ class DeskLight extends Component {
         },
         body: 'message=' + this.props.desklight.message_txt
       }
-      fetch('http://68.6.121.29:3000/flick_light', data)
+      fetch('https://us-central1-kirkydesk.cloudfunctions.net/flick', data)
       this.props.resetMessage()
     }
   }
