@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+/gcloud/flick/node_modules
+/gcloud/get/node_modules
+/gcloud/pi/node_modules
 
 # testing
 /coverage
