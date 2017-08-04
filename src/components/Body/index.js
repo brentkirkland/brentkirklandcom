@@ -13,7 +13,7 @@ class Header extends Component {
         <div className='tab'>
           <h2>Education</h2>
           <span><b>University of California, Santa Barbara</b></span>
-          <p>B.E. in Computer Science, 2017</p>
+          <p>B.S. in Computer Science, 2017</p>
         </div>
         <div className='tab'>
           <h2>Work</h2>
