@@ -10,7 +10,7 @@ Flick my desk light on with a message. Open to the whole internet. Let's just ho
 
 ### Projects
 
-These are the many projects I have completed. They are all available on this github.
+These are the many projects I have completed. They are all available on this [github](github.com/brentkirkland).
 
 ### Education
 
