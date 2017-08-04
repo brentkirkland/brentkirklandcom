@@ -1,6 +1,6 @@
 # brentkirklandcom
 
-Welcome to my personal website repo. This is my first leap into IoT. 
+Welcome to my personal website repo. This is my first leap into IoT.
 
 ## Features
 
@@ -18,6 +18,6 @@ UCSB Grad. Go Gauchos!
 
 ### Specs
 
-Front-end: [react-create-app](https://github.com/facebookincubator/create-react-app)
-Back-end: [Google Cloud](https://github.com/GoogleCloudPlatform/google-cloud-node)
-Light: Raspberry Pi Zero connected to a relay.
+* Front-end: [react-create-app](https://github.com/facebookincubator/create-react-app)
+* Back-end: [Google Cloud](https://github.com/GoogleCloudPlatform/google-cloud-node)
+* Light: Raspberry Pi Zero connected to a relay.
