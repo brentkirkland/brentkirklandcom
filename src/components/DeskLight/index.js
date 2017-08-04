@@ -12,14 +12,14 @@ class DeskLight extends Component {
   keepingGrabbingLightStatus () {
     setInterval(() => {
       this.getLightStatus()
-    }, 5000)
+    }, 30000)
   }
 
   getLightStatus () {
     setTimeout(() => {
-      fetch('http://68.6.121.29:3000/light_status')
+      fetch('https://us-central1-kirkydesk.cloudfunctions.net/get')
       .then(res => res.json())
-      .then(json => this.props.updateLightStatus(json.status, json.message, json.timestamp))
+      .then(json => this.props.updateLightStatus(json[0][0].status, json[0][0].message, json[0][0].timestamp))
     }, 200)
   }
 

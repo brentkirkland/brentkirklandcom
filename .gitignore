@@ -3,6 +3,7 @@
 # dependencies
 /node_modules
 /gcloud/flick/node_modules
+/gcloud/flick/ignores.js
 /gcloud/get/node_modules
 /gcloud/pi/node_modules
 
