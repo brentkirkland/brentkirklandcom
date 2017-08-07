@@ -34,12 +34,11 @@ class DeskLight extends Component {
   }
 
   submitMessage () {
-    console.log('submitting')
     if (this.props.desklight.message_txt.length < 3) {
       this.props.errorMessage("I need a cooler message.")
     } else {
       // needed if you want to clear error message
-      this.props.updateLightStatus(!this.props.desklight.status,
+      this.props.updateLightStatus(this.props.desklight.status,
         this.props.desklight.message_txt,
         new Date())
       var data = {

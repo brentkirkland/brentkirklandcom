@@ -9,7 +9,7 @@ var initial_state = {
 const lightstatus = (state = initial_state, action) => {
   switch (action.type) {
     case 'UPDATE_LIGHT_STATUS':
-      if (action.status) {
+      if (action.status === 'OFF') {
         state.status = 'ON'
       } else {
         state.status = 'OFF'
