@@ -14,14 +14,14 @@ function checkStatus() {
 }
 
 function flickLight(status) {
-
    if (current_status != status) {
       current_status = status;
       gpio.setup(18, gpio.DIR_OUT, (err) => {
          if (err) throw err;
          gpio.write(18, status, (err) => {
             if (err) throw err;
-               console.log('Light switch to: ', status, 'at ', Date.now());                 });
+               console.log('Light switch to: ', status, 'at ', Date.now());
+         });
       });
    }
 }
