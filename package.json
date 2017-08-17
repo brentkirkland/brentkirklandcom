@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "firebase": "^4.2.0",
+    "halogen": "^0.2.0",
+    "immutable": "^3.8.1",
+    "is-mobile": "^0.2.2",
     "node-fetch": "^1.7.2",
+    "prop-types": "^15.5.10",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
     "react-redux": "^5.0.5",

@@ -6,6 +6,7 @@
 /gcloud/flick/ignores.js
 /gcloud/get/node_modules
 /gcloud/pi/node_modules
+/src/components/Board/hidden.js
 
 # testing
 /coverage

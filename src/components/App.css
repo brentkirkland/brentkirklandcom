@@ -1,12 +1,26 @@
 .App {
   text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+.App-left {
+  overflow: scroll;
+  overflow-x: hidden;
 }
 
 .App-intro {
   font-size: large;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.App-split {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.App-pixxiti {
+  background-color: red;
+  flex: 1;
+  height: 100%;
 }
