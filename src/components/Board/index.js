@@ -80,7 +80,7 @@ class Board extends Component {
     } else {
       if (this.props.camera.transX === this.props.camera.prevX && this.props.camera.transY === this.props.camera.prevY && this.props.draw.color !== -1) {
         var i = Math.floor((e.clientX - 390 - bld)/this.props.camera.zoom)
-        var j = Math.floor((e.clientY - btd)/this.props.camera.zoom)
+        var j = Math.floor((e.clientY - btd + 20)/this.props.camera.zoom)
         if (this.props.draw.drawable && this.props.camera.moveable) {
           this.props.onBoardClick(this.props.draw.color, j, i)
           firebase.database().ref('pixel').set({x: i, y: j, c: this.props.draw.color});
@@ -101,7 +101,7 @@ class Board extends Component {
 
   updateBoard(j, i, c) {
     var url = 'https://us-central1-pixxiti.cloudfunctions.net/putData?i=' + i + '&j=' + j + '&c=' + c
-    fetch(url).then(this.handleErrors).then(response => console.log(response)).catch(error => console.log(error));
+    fetch(url).then(this.handleErrors).then(response => response).catch(error => console.log(error));
   }
 
   onContextMenu(e) {
