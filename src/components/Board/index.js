@@ -32,7 +32,7 @@ class Board extends Component {
     fetch('https://us-central1-pixxiti.cloudfunctions.net/getData').then(res => res.json()).then(json => {
       var str = json.str;
       this.props.getBoard(str);
-      setTimeout(this.finishLoadingStuff.bind(this), 1000)
+      setTimeout(this.finishLoadingStuff.bind(this), 10000)
     })
   }
 
@@ -125,9 +125,19 @@ class Board extends Component {
     if (this.props.camera.loading) {
       return (
         <div className="BackgroundPop" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          color: 'white',
           height: this.props.camera.height - 40,
           width: this.props.camera.width - 390}}>
           <Loader color="#fff" size="16px" margin="4px"/>
+          <br/>
+          <p>Drag to move</p>
+          <p>Click to zoom in</p>
+          <p>Pick a color</p>
+          <p>Click a tile to color</p>
+          <p>Right click to zoom out</p>
+          <p></p>
         </div>
       )
     }
