@@ -32,7 +32,7 @@ class Board extends Component {
     fetch('https://us-central1-pixxiti.cloudfunctions.net/getData').then(res => res.json()).then(json => {
       var str = json.str;
       this.props.getBoard(str);
-      setTimeout(this.finishLoadingStuff.bind(this), 10000)
+      setTimeout(this.finishLoadingStuff.bind(this), 15000)
     })
   }
 
@@ -62,26 +62,25 @@ class Board extends Component {
       var transY = this.props.camera.prevY + (e.clientY - this.props.camera.startY) / this.props.camera.zoom
       this.props.mouseMove(transX, transY)
     }
-    console.log(transX, transY)
   }
 
   mouseUp(e) {
-    var bld = this.props.camera.transX*this.props.camera.zoom + (this.props.camera.width - 390)/2 - 400*this.props.camera.zoom/2
-    var btd = this.props.camera.transY*this.props.camera.zoom + (this.props.camera.height + 40)/2 - 400*this.props.camera.zoom/2
-    if (this.props.camera.transX === this.props.camera.prevX && this.props.camera.transY === this.props.camera.prevY && e.button === 0 && this.props.camera.moveable && this.props.camera.zoom === 4) {
-      var prevX = -1*(e.clientX - bld - 200 * 4 - 390)/4
-      var prevY = -1*(e.clientY - btd - 200 * 4 + 40)/4
-      var transX = -1*(e.clientX - bld - 200 * 4 - 390)/4
-      var transY = -1*(e.clientY - btd - 200 * 4 + 40)/4
+    var bld = this.props.camera.transX*this.props.camera.zoom + (this.props.camera.width - 390)/2 - 800*this.props.camera.zoom/4
+    var btd = this.props.camera.transY*this.props.camera.zoom + (this.props.camera.height)/2 - 800*this.props.camera.zoom/4
+    if (this.props.camera.transX === this.props.camera.prevX && this.props.camera.transY === this.props.camera.prevY && e.button === 0 && this.props.camera.moveable && this.props.camera.zoom === 8) {
+      var prevX = -1*(e.clientX - bld - 200 * 8 - 390)/8
+      var prevY = -1*(e.clientY - btd - 200 * 8 + 40)/8
+      var transX = -1*(e.clientX - bld - 200 * 8 - 390)/8
+      var transY = -1*(e.clientY - btd - 200 * 8 + 40)/8
       this.props.mouseUpOne(40, false, prevX, prevY, transX, transY)
       this.props.changeDrawable()
     } else if (e.button === 2 && this.props.camera.zoom === 40) {
-      this.props.mouseUpTwo(4, false, this.props.camera.transX, this.props.camera.transY)
+      this.props.mouseUpTwo(8, false, this.props.camera.transX, this.props.camera.transY)
       this.props.changeDrawable()
     } else {
       if (this.props.camera.transX === this.props.camera.prevX && this.props.camera.transY === this.props.camera.prevY && this.props.draw.color !== -1) {
         var i = Math.floor((e.clientX - 390 - bld)/this.props.camera.zoom)
-        var j = Math.floor((e.clientY - btd + 40)/this.props.camera.zoom)
+        var j = Math.floor((e.clientY - btd + 20)/this.props.camera.zoom)
         if (this.props.draw.drawable && this.props.camera.moveable) {
           this.props.onBoardClick(this.props.draw.color, j, i)
           firebase.database().ref('pixel').set({x: i, y: j, c: this.props.draw.color});
@@ -133,9 +132,8 @@ class Board extends Component {
           <Loader color="#fff" size="16px" margin="4px"/>
           <br/>
           <p>Drag to move</p>
-          <p>Click to zoom in</p>
-          <p>Pick a color</p>
-          <p>Click a tile to color</p>
+          <p>Left click to zoom in</p>
+          <p>Select a color below & left click to color tiles (only zoomed in)</p>
           <p>Right click to zoom out</p>
           <p></p>
         </div>
