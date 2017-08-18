@@ -6,7 +6,7 @@ var initial_state = {
   prevX: 0,
   prevY: 0,
   movable: false,
-  zoom: 8,
+  zoom: 4,
   drawable: false,
   loading: true
 }
