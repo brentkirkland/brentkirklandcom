@@ -62,6 +62,7 @@ class Board extends Component {
       var transY = this.props.camera.prevY + (e.clientY - this.props.camera.startY) / this.props.camera.zoom
       this.props.mouseMove(transX, transY)
     }
+    console.log(transX, transY)
   }
 
   mouseUp(e) {
