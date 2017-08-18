@@ -32,7 +32,7 @@ class Board extends Component {
     fetch('https://us-central1-pixxiti.cloudfunctions.net/getData').then(res => res.json()).then(json => {
       var str = json.str;
       this.props.getBoard(str);
-      setTimeout(this.finishLoadingStuff.bind(this), 15000)
+      setTimeout(this.finishLoadingStuff.bind(this), 10000)
     })
   }
 
