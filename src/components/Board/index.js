@@ -66,7 +66,7 @@ class Board extends Component {
 
   mouseUp(e) {
     var bld = this.props.camera.transX*this.props.camera.zoom + (this.props.camera.width - 390)/2 - 800*this.props.camera.zoom/4
-    var btd = this.props.camera.transY*this.props.camera.zoom + (this.props.camera.height)/2 - 800*this.props.camera.zoom/4
+    var btd = this.props.camera.transY*this.props.camera.zoom + (this.props.camera.height + 40)/2 - 800*this.props.camera.zoom/4
     if (this.props.camera.transX === this.props.camera.prevX && this.props.camera.transY === this.props.camera.prevY && e.button === 0 && this.props.camera.moveable && this.props.camera.zoom === 8) {
       var prevX = -1*(e.clientX - bld - 200 * 8 - 390)/8
       var prevY = -1*(e.clientY - btd - 200 * 8 + 40)/8
@@ -132,8 +132,8 @@ class Board extends Component {
           <Loader color="#fff" size="16px" margin="4px"/>
           <br/>
           <p>Drag to move</p>
-          <p>Left click to zoom in</p>
-          <p>Select a color below & left click to color tiles (only zoomed in)</p>
+          <p>Click to zoom in</p>
+          <p>Select a color below & click tiles to color (only zoomed in)</p>
           <p>Right click to zoom out</p>
           <p></p>
         </div>

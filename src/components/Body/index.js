@@ -35,9 +35,9 @@ class Header extends Component {
           </span>
           <p>This website's <a href='https://github.com/brentkirkland/brentkirklandcom'>source code</a>.</p>
           <span>
-            <b>Soilwatch</b>
+            <b>Ethereum Desk Light</b>
           </span>
-          <p>Work in Progress (!!!). A soil analytics website that uses BLE devices to report soil data. <a href='https://github.com/brentkirkland/slurp'>Front End</a>, <a href='https://github.com/brentkirkland/slurp-backend'>Back End</a>, <a href='https://github.com/brentkirkland/miflora'>Device</a>.</p>
+          <p>A desk light connected to an Ethereum smart contract. Runs on Rinkeby testnet. <a href='https://github.com/brentkirkland/ethereum-desk-light'>Source Code</a>.</p>
           <span>
             <b>Pixxiti</b>
           </span>
