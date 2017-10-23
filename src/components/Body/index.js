@@ -19,6 +19,10 @@ class Header extends Component {
         </div>
         <div className='tab'>
           <h2>Work</h2>
+	  <span>
+	     <b>Bitfinex</b>
+          </span>
+          <p>Software Engineer, October 2017 - Present</p>
           <span>
             <b>Graphiq Inc.</b>
           </span>
