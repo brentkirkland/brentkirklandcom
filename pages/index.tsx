@@ -1,55 +1,35 @@
-import { NextPage } from "next";
-import Head from "next/head";
-import React from "react";
+import Layout from "../components/Layout";
 
-const Home: NextPage<{}> = () => (
-  <div className="container">
-    <Head>
-      <title>Brent Kirkland</title>
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
-
-    <header>
-      <h1 className="title">
-        /brentkirklandcom
-      </h1>
-    </header>
-
-    <main>
-      <p>Weedmaps Software Engineer</p>
-    </main>
-
-    <footer>Copyright 2020</footer>
-
-    <style jsx>
-      {`
-      .container {
-        padding: 1rem;
-      }
-
-      .title {
-        margin: 0;
-        line-height: 1.15;
-        font-size: 2rem;
-      }
-    `}
-    </style>
-
-    <style jsx global>
-      {`
-      html,
-      body {
-        padding: 0;
-        margin: 0;
-        font-family: monospace;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-    `}
-    </style>
-  </div>
+const IndexPage = () => (
+  <Layout title="Brent Kirkland">
+    <>
+      <h1 className="text-2xl">Brent Kirkland</h1>
+      <ul>
+        <li>
+          Software Engineer at{" "}
+          <a className="text-indigo-600" href="https://weedmaps.com">
+            Weedmaps
+          </a>
+        </li>
+        <li>
+          Previous Engineer at{" "}
+          <a className="text-indigo-600" href="https://bitfinex.com">
+            Bitfinex
+          </a>
+        </li>
+        <li>Computer Science BS from UCSB</li>
+        <li>
+          Contact me on{" "}
+          <a
+            className="text-indigo-600"
+            href="https://www.linkedin.com/in/brentland/"
+          >
+            LinkedIn
+          </a>
+        </li>
+      </ul>
+    </>
+  </Layout>
 );
 
-export default Home;
+export default IndexPage;
