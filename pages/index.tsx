@@ -51,7 +51,7 @@ const IndexPage = () => (
           View website source code on{" "}
           <a
             className="text-indigo-600"
-            href="https://www.linkedin.com/in/brentland/"
+            href="https://github.com/brentkirkland/brentkirklandcom"
           >
             Github
           </a>
