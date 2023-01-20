@@ -9,7 +9,7 @@ const IndexPage = () => {
         <div className="py-4">
           <h2 className="font-bold">Projects</h2>
           <p>
-            <a className={linkClass} href="https://goerli.pixxiti.com">
+            <a className={linkClass} href="https://pixxiti.com">
               Pixxiti
             </a>
             , Your NFT Here
