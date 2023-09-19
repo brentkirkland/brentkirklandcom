@@ -1,7 +1,7 @@
 # This file describes a Fastly Compute@Edge package. To learn more visit:
 # https://developer.fastly.com/reference/fastly-toml/
 
-name = "Bun Fastly Simple"
+name = "brentkirklandcom"
 authors = [""]
 description = ""
 language = "javascript"
