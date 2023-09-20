@@ -1,0 +1,26 @@
+{
+  "name": "auth",
+  "type": "module",
+  "scripts": {
+    "dev": "fastly compute serve --watch",
+    "prebuild": "bun ./build.config.ts",
+    "build": "js-compute-runtime bin/index.js bin/main.wasm",
+    "deploy": "fastly compute publish",
+    "vite": "bunx --bun vite"
+  },
+  "devDependencies": {
+    "@fastly/js-compute": "^2.4.0",
+    "@hono/vite-dev-server": "^0.0.8",
+    "bun-types": "^1.0.1",
+    "drizzle-kit": "^0.19.13",
+    "vite": "^4.4.9"
+  },
+  "dependencies": {
+    "@auth/core": "^0.15.0",
+    "@libsql/client": "^0.3.4",
+    "drizzle-orm": "0.28.3",
+    "esbuild-plugin-polyfill-node": "^0.3.0",
+    "hono": "^3.6.3",
+    "nodemailer": "^6.9.5"
+  }
+}
