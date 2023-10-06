@@ -21,7 +21,7 @@ export const layoutMiddleware: MiddlewareHandler = async (c, next) => {
           <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
           <script src="https://cdn.tailwindcss.com"></script>
         </head>
-        <body class="bg-white dark:bg-black text-black dark:text-white font-mono">
+        <body class="bg-white dark:bg-black text-black dark:text-white font-mono m-auto max-w-lg">
           {content}
         </body>
       </html>,

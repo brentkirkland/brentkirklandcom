@@ -1,74 +1,64 @@
 import { hono } from "hono-local";
 import { layoutMiddleware } from "~/middleware/layout";
+import { Workplace } from "./components/workplace";
 
 const app = hono();
 
 app.get("/", layoutMiddleware, (c) => {
   return c.render(
-    <div class="p-4">
-      <h1 class="text-2xl py-4">Brent Kirkland</h1>
-      <div>
+    <div class="p-6">
+      <div class="flex items-end justify-between  pt-4 pb-4">
+        <h1 class="text-xl">brentkirklandcom</h1>
+        <a
+          href="https://github.com/brentkirkland/brentkirklandcom"
+          class="text-indigo-600 dark:text-indigo-300"
+        >
+          GitHub
+        </a>
+      </div>
+
+      <div class="py-4">
         <h2 class="font-bold">Work Experience</h2>
-        <ul>
+        <ul class="py-4 list-disc px-7 space-y-1">
           <li>
-            Software Engineer at{" "}
-            <a
-              class="text-indigo-600 dark:text-indigo-300"
-              href="https://Fastly.com"
-            >
-              Fastly
-            </a>
-            , <i>2023 - Present</i>
+            <Workplace
+              name="Fastly"
+              url="https://fastly.com"
+              title="Software Engineer"
+              from="2023"
+              to="Curr"
+            />
           </li>
           <li>
-            Software Engineer at{" "}
-            <a
-              class="text-indigo-600 dark:text-indigo-300"
-              href="https://weedmaps.com"
-            >
-              Weedmaps
-            </a>
-            , <i>2019 - 2023</i>
+            <Workplace
+              name="Weedmaps"
+              url="https://weedmaps.com"
+              title="Software Engineer"
+              from="2019"
+              to="2023"
+            />
           </li>
           <li>
-            Software Engineer at{" "}
-            <a
-              class="text-indigo-600 dark:text-indigo-300"
-              href="https://bitfinex.com"
-            >
-              Bitfinex
-            </a>
-            , <i>2017 - 2019</i>
+            <Workplace
+              name="Bitfinex"
+              url="https://bitfinex.com"
+              title="Software Engineer"
+              from="2017"
+              to="2019"
+            />
           </li>
         </ul>
       </div>
       <div class="py-4">
         <h2 class="font-bold">Education</h2>
-        <p>Computer Science BS from UCSB</p>
-      </div>
-      <div>
-        <p>
-          Contact me on{" "}
-          <a
-            class="text-indigo-600 dark:text-indigo-300"
-            href="https://www.linkedin.com/in/brentland/"
-          >
-            LinkedIn
-          </a>
-        </p>
-        <p>
-          View website source code on{" "}
-          <a
-            class="text-indigo-600 dark:text-indigo-300"
-            href="https://github.com/brentkirkland/brentkirklandcom"
-          >
-            Github
-          </a>
-        </p>
+
+        <ul class="py-4 list-disc px-7">
+          <li>Computer Science BS from UCSB</li>
+        </ul>
       </div>
     </div>,
     {
-      title: "Brent Kirkland",
+      title: "Brent Kirkland | brentkirklandcom",
     },
   );
 });
