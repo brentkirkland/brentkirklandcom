@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "fastly compute serve --watch",
-    "prebuild": "bun ./build.config.ts",
+    "prebuild": "bun ./build.config.ts && bun ./toml.ts",
     "build": "js-compute-runtime bin/index.js bin/main.wasm",
     "deploy": "fastly compute publish",
     "vite": "bunx --bun vite"
@@ -14,6 +14,10 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "hono": "^3.6.3"
+    "build-toml": "workspace:*",
+    "esbuild-plugin-polyfill-node": "^0.3.0",
+    "hono-local": "workspace:*",
+    "db": "workspace:*",
+    "fastly-plugin": "workspace:*"
   }
 }

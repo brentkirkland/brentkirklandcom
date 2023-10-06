@@ -1,7 +1,7 @@
-import { Hono } from "hono/quick";
+import { hono } from "hono-local";
 import { layoutMiddleware } from "~/middleware/layout";
 
-const app = new Hono();
+const app = hono();
 
 app.get("/", layoutMiddleware, (c) => {
   return c.render(
