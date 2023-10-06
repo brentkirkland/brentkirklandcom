@@ -4,7 +4,7 @@ import { polyfillNode } from "esbuild-plugin-polyfill-node";
 Bun.build({
   entrypoints: ["src/index.tsx"],
   outdir: "bin",
-  minify: true,
+  minify: false,
   plugins: [
     fastlyPlugin,
     // @ts-expect-error plugin is compatible

@@ -1,5 +1,5 @@
 import { Hono } from "hono/quick";
-import type { Client, Drizzle } from "../../db/src";
+import type { Client, Drizzle } from "db";
 import { dbMiddleware } from "./middleware/db";
 
 const app = new Hono<{

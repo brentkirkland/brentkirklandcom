@@ -6,8 +6,8 @@
   service_id = ""
 
 [scripts]
-  build = "bun run build"
+  build = "bun build:c@e"
 
 [local_server.backends.db]
-  url = "http://127.0.0.1:8080"
+  url = "http://"
 
