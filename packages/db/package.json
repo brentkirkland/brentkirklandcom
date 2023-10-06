@@ -1,13 +1,12 @@
 {
-    "name": "db",
-    "type": "module",
-    "main": "src/index.ts",
-    "scripts": {},
-    "devDependencies": {
-    },
-    "dependencies": {
-        "@libsql/client": "^0.3.4",
-        "drizzle-orm": "0.28.3"
-    }
+  "name": "db",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {},
+  "devDependencies": {},
+  "dependencies": {
+    "@libsql/client": "^0.3.4",
+    "drizzle-kit": "^0.19.13",
+    "drizzle-orm": "0.28.3"
   }
-  
+}
