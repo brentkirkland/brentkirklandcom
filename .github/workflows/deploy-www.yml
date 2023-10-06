@@ -35,3 +35,4 @@ jobs:
         uses: fastly/compute-actions/deploy@v5
         with:
           comment: Deployed via GitHub Actions
+          project_directory: packages/www
