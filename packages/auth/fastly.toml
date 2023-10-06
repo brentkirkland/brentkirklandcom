@@ -11,3 +11,10 @@
 [local_server.backends.db]
   url = "http://127.0.0.1:8080"
 
+[config_stores.fhth_config]
+  format = "inline-toml"
+
+[config_stores.fhth_config.contents]
+  DB_URL = "http://127.0.0.1:8080"
+  DB_AUTH_TOKEN = "1234567890"
+

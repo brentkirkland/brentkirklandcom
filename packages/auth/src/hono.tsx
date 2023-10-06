@@ -1,13 +1,6 @@
-import { Hono } from "hono/quick";
-import type { Client, Drizzle } from "db";
-import { dbMiddleware } from "./middleware/db";
+import { dbMiddleware, hono } from "hono-local";
 
-const app = new Hono<{
-  Variables: {
-    client: Client;
-    drizzle: Drizzle;
-  };
-}>();
+const app = hono();
 
 app.use("*", dbMiddleware);
 

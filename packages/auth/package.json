@@ -16,7 +16,7 @@
   "dependencies": {
     "build-toml": "workspace:*",
     "esbuild-plugin-polyfill-node": "^0.3.0",
-    "hono": "^3.6.3",
+    "hono-local": "workspace:*",
     "db": "workspace:*",
     "fastly-plugin": "workspace:*"
   }

@@ -10,10 +10,18 @@ type Configuration = {
   scripts: {
     build: string;
   };
-  local_server: {
+  local_server?: {
     backends: {
       [key: string]: {
         url: string;
+      };
+    };
+  };
+  config_stores?: {
+    [key: string]: {
+      format: string;
+      contents: {
+        [key: string]: string;
       };
     };
   };
@@ -27,25 +35,3 @@ export const buildToml = (config: Configuration, path: string) => {
 
   Bun.write(path, toml);
 };
-
-buildToml(
-  {
-    name: "brentkirklandcom",
-    authors: [""],
-    description: "",
-    language: "javascript",
-    manifest_version: 2,
-    service_id: "",
-    scripts: {
-      build: "bun build:c@e",
-    },
-    local_server: {
-      backends: {
-        db: {
-          url: "http://",
-        },
-      },
-    },
-  },
-  "build.toml",
-);

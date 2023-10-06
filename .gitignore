@@ -7,3 +7,5 @@ pkg/
 
 **/.env
 **/.env.local
+
+**/fastly.toml

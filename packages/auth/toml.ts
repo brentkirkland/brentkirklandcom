@@ -18,6 +18,15 @@ buildToml(
         },
       },
     },
+    config_stores: {
+      fhth_config: {
+        format: "inline-toml",
+        contents: {
+          DB_URL: process.env.DB_URL as string,
+          DB_AUTH_TOKEN: process.env.DB_AUTH_TOKEN as string,
+        },
+      },
+    },
   },
   "fastly.toml",
 );
