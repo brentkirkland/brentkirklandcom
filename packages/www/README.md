@@ -23,6 +23,7 @@ bun deploy
 bun vite
 ```
 
-Vite mode allows you to develop with HMR. It's great for rapid development, but it's still best to check your work compiles with `bun dev`
+Vite mode allows you to develop with HMR. It's great for rapid development, but
+it's still best to check your work compiles with `bun dev`
 
 Note: not all fastly plugins are added to vite.
