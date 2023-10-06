@@ -1,7 +1,7 @@
 name: Deploy WWW
 on:
   push:
-    branches: [main]
+    branches: [2023]
 
 
 env:
