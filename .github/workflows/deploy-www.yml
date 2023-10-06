@@ -32,6 +32,9 @@ jobs:
       - name: Build Application
         run: bun run --cwd=packages/www build
 
+      - name: Debug
+        run: cd packages/www && ls -la
+
       - name: Deploy Compute@Edge Package
         uses: fastly/compute-actions/deploy@v5
         with:
