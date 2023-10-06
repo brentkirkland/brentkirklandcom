@@ -20,7 +20,7 @@ jobs:
         uses: fastly/compute-actions/setup@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: setup bun
         - uses: oven-sh/setup-bun@v1
           with:
@@ -29,7 +29,6 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      
       - name: Build Application
         run: bun run --cwd=packages/www build
 
