@@ -2,7 +2,7 @@ import { buildToml } from "build-toml";
 
 buildToml(
   {
-    name: "www",
+    name: "auth",
     authors: [""],
     description: "",
     language: "javascript",

@@ -2,7 +2,7 @@ import { buildToml } from "build-toml";
 
 buildToml(
   {
-    name: "brentkirklandcom",
+    name: "www",
     authors: [""],
     description: "",
     language: "javascript",
