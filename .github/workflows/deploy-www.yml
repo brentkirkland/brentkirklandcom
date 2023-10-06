@@ -19,6 +19,7 @@ jobs:
         uses: fastly/compute-actions/setup@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          project_directory: ./packages/www/
 
       - name: setup bun
         uses: oven-sh/setup-bun@v1
