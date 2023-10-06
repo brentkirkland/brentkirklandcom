@@ -1,6 +1,6 @@
 import { createClient as createLibsqlClient } from "@libsql/client/web";
 import { drizzle } from "drizzle-orm/libsql";
-import { users, accounts, sessions, verificationTokens } from "./schema";
+import { example } from "./schema";
 
 const config = {
   fetch: async (req: Request) => {
@@ -25,10 +25,7 @@ export function createClient({
 }
 
 export const schema = {
-  users,
-  accounts,
-  sessions,
-  verificationTokens,
+  example,
 };
 
 export const createDrizzle = ({ client }: { client: Client }) =>

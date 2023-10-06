@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { createDrizzle, createClient } from "~/db";
+import { createDrizzle, createClient } from "db";
 
 export const dbMiddleware: MiddlewareHandler = async (c, next) => {
   //   const configStore = new ConfigStore("fhth_config");
@@ -10,10 +10,11 @@ export const dbMiddleware: MiddlewareHandler = async (c, next) => {
   //     return c.text("Missing env", 500);
   //   }
 
+  // todo
   const client = createClient({
-    // authToken,
+    authToken: "",
     url: "http://127.0.0.1:8080",
-  } as any);
+  });
 
   c.set("client", client);
   c.set("drizzle", createDrizzle({ client }));

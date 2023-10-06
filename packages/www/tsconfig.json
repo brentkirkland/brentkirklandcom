@@ -1,32 +1,10 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": false,
-    "target": "ESNext",
-    "verbatimModuleSyntax": true,
-    "allowJs": false,
-    "resolveJsonModule": true,
-    "moduleDetection": "force",
-
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-
-    "moduleResolution": "bundler",
-    "module": "esnext",
-    "noEmit": true,
-
-    "lib": ["ESNext", "DOM"],
-
-    "types": [
-      "bun-types", // add Bun global
-      "@fastly/js-compute"
-    ],
-
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
     }
   }
 }

@@ -1,13 +1,15 @@
-export const fastlyPlugin = {
+import { BunPlugin } from "bun";
+
+export const fastlyPlugin: BunPlugin = {
   name: "fastly",
-  setup(build: any) {
-    build.onResolve({ filter: /^fastly:.*/ }, (args: any) => {
+  setup(build) {
+    build.onResolve({ filter: /^fastly:.*/ }, (args) => {
       return {
         path: args.path.replace("fastly:", ""),
         namespace: "fastly",
       };
     });
-    build.onLoad({ filter: /^.*/, namespace: "fastly" }, async (args: any) => {
+    build.onLoad({ filter: /^.*/, namespace: "fastly" }, (args) => {
       switch (args.path) {
         case "backend": {
           return { contents: `export const Backend = globalThis.Backend;` };
@@ -66,6 +68,9 @@ export const fastlyPlugin = {
           return {
             contents: `export const SimpleCache = globalThis.SimpleCache;export const SimpleCacheEntry = globalThis.SimpleCacheEntry;`,
           };
+        }
+        default: {
+          return { contents: "" };
         }
       }
     });

@@ -1,4 +1,4 @@
-import { fastlyPlugin } from "./fastly-plugin";
+import { fastlyPlugin } from "fastly-plugin";
 import { polyfillNode } from "esbuild-plugin-polyfill-node";
 
 Bun.build({
@@ -7,10 +7,11 @@ Bun.build({
   minify: true,
   plugins: [
     fastlyPlugin,
+    // @ts-expect-error plugin is compatible
     polyfillNode({
       globals: {
         navigator: true,
       },
     }),
   ],
-});
+}).catch(() => process.exit(1));

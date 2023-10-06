@@ -1,0 +1,8 @@
+{
+    "name": "fastly-plugin",
+    "type": "module",
+    "main": "src/index.ts",
+    "scripts": {},
+    "devDependencies": {},
+    "dependencies": {}
+}

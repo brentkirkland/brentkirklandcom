@@ -16,11 +16,9 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "@auth/core": "^0.15.0",
-    "@libsql/client": "^0.3.4",
-    "drizzle-orm": "0.28.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "hono": "^3.6.3",
-    "nodemailer": "^6.9.5"
+    "db": "workspace:*",
+    "fastly-plugin": "workspace:*"
   }
 }
