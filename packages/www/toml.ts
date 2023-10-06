@@ -7,7 +7,7 @@ buildToml(
     description: "",
     language: "javascript",
     manifest_version: 2,
-    service_id: "",
+    service_id: process.env.SERVICE_ID as string,
     scripts: {
       build: "bun run build",
     },
