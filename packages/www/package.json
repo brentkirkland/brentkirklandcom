@@ -5,6 +5,7 @@
     "dev": "fastly compute serve --watch",
     "prebuild": "bun ./build.config.ts && bun ./toml.ts",
     "build": "js-compute-runtime bin/index.js bin/main.wasm",
+    "build:toml": "bun ./toml.ts",
     "deploy": "fastly compute publish",
     "vite": "bunx --bun vite"
   },
