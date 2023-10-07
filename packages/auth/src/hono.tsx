@@ -1,8 +1,8 @@
-import { dbMiddleware, hono } from "hono-local";
+import { hono } from "hono-local";
 
 const app = hono();
 
-app.use("*", dbMiddleware);
+// app.use("*", dbMiddleware);
 
 app.get("/", (c) => {
   const d = <div>haaaa</div>;
