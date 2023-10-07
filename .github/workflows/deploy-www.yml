@@ -37,6 +37,9 @@ jobs:
           verbose: true # optionally enables verbose output, defaults to false
           project_directory: ./packages/www/
 
+      - name: which fastly
+        run: which fastly
+
       - name: Deploy Compute@Edge Package
         uses: fastly/compute-actions/deploy@v5
         with:
