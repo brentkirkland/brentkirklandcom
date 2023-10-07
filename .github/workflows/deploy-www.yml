@@ -28,9 +28,6 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: prebuild
-        run: bun run --cwd ./packages/www build:toml
-
       - name: Build Compute@Edge Package
         uses: fastly/compute-actions/build@v5
         with:

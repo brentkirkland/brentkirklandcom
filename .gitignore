@@ -5,6 +5,7 @@ pkg/
 **/bin/
 **/pkg/
 
+.env
 **/.env
 **/.env.local
 

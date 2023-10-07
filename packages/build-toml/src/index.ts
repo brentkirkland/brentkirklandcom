@@ -9,6 +9,7 @@ type Configuration = {
   service_id: string;
   scripts: {
     build: string;
+    env_vars: string[];
   };
   local_server?: {
     backends: {

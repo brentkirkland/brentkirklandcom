@@ -10,6 +10,10 @@ buildToml(
     service_id: process.env.SERVICE_ID as string,
     scripts: {
       build: "bun run build",
+      env_vars: [
+        `DB_URL=${process.env.DB_URL}`,
+        `DB_AUTH_TOKEN=${process.env.DB_AUTH_TOKEN}`,
+      ],
     },
     local_server: {
       backends: {
