@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import Head from "next/head";
 
 type Props = {
@@ -6,12 +6,16 @@ type Props = {
   title?: string;
 };
 
-const Layout = ({ children, title = "This is the default title" }: Props) => (
-  <div className="font-mono p-4">
+const Layout = ({ children, title = "Brent Kirkland" }: Props) => (
+  <div className="font-sans min-h-screen">
     <Head>
       <title>{title}</title>
       <meta charSet="utf-8" />
-      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta
+        name="description"
+        content="Brent Kirkland. Security Products at Fastly. No email — draw a picture."
+      />
     </Head>
     {children}
   </div>

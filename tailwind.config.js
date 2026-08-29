@@ -1,10 +1,13 @@
 module.exports = {
-  purge: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        paper: "#f3eee4",
+        ink: "#1c1814",
+        night: "#0c0c0c",
+      },
+    },
   },
-  variants: {
-    extend: {}
-  },
-  plugins: []
+  plugins: [],
 };
