@@ -1,0 +1,110 @@
+:root {
+  color-scheme: dark;
+  --paper: #f3eee4;
+  --ink: #1c1814;
+  --night: #0c0c0c;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--night);
+  color: var(--paper);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+}
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--paper) 50%, transparent);
+  margin: 0;
+}
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0.75rem 0 0;
+}
+.lede {
+  font-size: 1.125rem;
+  color: color-mix(in srgb, var(--paper) 75%, transparent);
+  margin: 1rem 0 0;
+}
+a {
+  color: var(--paper);
+  text-underline-offset: 0.25em;
+  text-decoration-color: color-mix(in srgb, var(--paper) 30%, transparent);
+}
+a:hover { text-decoration-color: var(--paper); }
+h2 { font-size: 1rem; font-weight: 500; margin: 3rem 0 0; }
+.pitch {
+  max-width: 28rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--paper) 65%, transparent);
+  margin: 0.5rem 0 0;
+}
+form { margin-top: 1.5rem; }
+#pad-wrap {
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+.row {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+button { font: inherit; cursor: pointer; }
+button[type="submit"] {
+  background: var(--paper);
+  color: var(--ink);
+  border: 0;
+  border-radius: 2px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+button[type="submit"]:hover { background: #fff; }
+#clear {
+  background: none;
+  border: 0;
+  color: color-mix(in srgb, var(--paper) 60%, transparent);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+#clear:hover { color: var(--paper); }
+.hint { font-size: 0.875rem; color: #fde68a; margin: 0; }
+.stamp {
+  margin-top: 0.25rem;
+  background: color-mix(in srgb, var(--night) 90%, transparent);
+  padding: 0.75rem 1rem;
+  border-radius: 2px;
+  font-size: 0.875rem;
+}
+.stamp p { margin: 0; }
+.stamp-title { font-weight: 500; letter-spacing: 0.04em; }
+.stamp p + p {
+  margin-top: 0.35rem;
+  color: color-mix(in srgb, var(--paper) 70%, transparent);
+}
+footer {
+  margin-top: 4rem;
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--paper) 45%, transparent);
+}
+footer a { color: inherit; text-decoration: none; }
+footer a:hover { color: var(--paper); }
+.dot { margin: 0 0.5rem; }
