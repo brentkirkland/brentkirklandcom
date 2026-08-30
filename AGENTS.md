@@ -2,7 +2,7 @@
 
 Personal site for brentkirkland.com. A [Hono](https://hono.dev) app on Cloudflare Workers whose
 one interesting feature is the contact form: instead of a captcha, you prove you're human by
-drawing a picture on a canvas.
+drawing a picture on a canvas. Those drawings are then shown on a public wall at `/drawings`.
 
 There is no build step for the frontend, no framework, and no test suite. The entire server is
 one file.
@@ -11,14 +11,42 @@ one file.
 
 | Path | What's in it |
 | --- | --- |
-| `src/index.ts` | The whole Worker: the HTML page, the `POST /hi` handler, and the cron handler |
-| `public/` | Static assets served by Workers Assets — `app.css`, `draw.js` (canvas pad), `shader.js` (animated background) |
+| `src/index.ts` | The whole Worker: both HTML pages, all four routes, and the cron handler |
+| `public/` | Static assets served by Workers Assets — `app.css`, `draw.js` (canvas pad plus the success animation), `shader.js` (animated background) |
 | `migrations/` | D1 migrations, applied by `wrangler d1 migrations apply` |
 | `wrangler.jsonc` | Bindings, cron trigger, and the `preview` environment |
 | `.github/workflows/` | `deploy.yml` (push to `main`) and `preview.yml` (per-PR preview Worker) |
 
 Bindings, all declared in `wrangler.jsonc`: `DB` (D1), `HI` (R2), `EMAIL` (Send Email), plus the
 `ENVIRONMENT` var and two secrets.
+
+## Routes
+
+| Route | Purpose |
+| --- | --- |
+| `GET /` | The home page: bio, the drawing pad, and the contact form |
+| `POST /hi` | Accepts a submission. Returns an HTML fragment, not JSON |
+| `GET /drawings` | Public gallery of the 300 most recent drawings |
+| `GET /drawings/:id/image` | Serves one drawing as decoded image bytes, cached a day |
+
+> [!IMPORTANT]
+> **`/drawings` is public and unmoderated.** It lists every row with a non-empty `drawing_key`
+> regardless of `status`, so anything anyone draws is on the public wall the moment it's stored.
+> There's no approval gate and no delete path in the app. Email addresses and message bodies are
+> *not* exposed — only the image and the submission id.
+
+Two things about that gallery are easy to get wrong:
+
+- **Drawings live in R2 as the data URL string**, not as image bytes — `POST /hi` stores exactly
+  what the canvas produced (`data:image/png;base64,...`). `GET /drawings/:id/image` parses that
+  string with a regex and `atob`s it back into bytes. A stored value that doesn't match the data URL
+  pattern is served as a 404 rather than an error.
+- **The id under each thumbnail is cosmetic.** It's `id.slice(0, 8)` for display only; the `<img>`
+  still requests the full UUID, and the route matches on `id = ?` exactly. Requesting a drawing by
+  its 8-character prefix returns 404.
+
+Rows whose R2 object is missing or unparseable still render an `<img>` that 404s, so the gallery
+markup carries an inline `onerror` that removes the broken thumbnail client-side.
 
 ## How a submission flows
 
@@ -32,8 +60,30 @@ Bindings, all declared in `wrangler.jsonc`: `DB` (D1), `HI` (R2), `EMAIL` (Send 
    `c.executionCtx.waitUntil(...)`: PNG and strokes to R2 under `hi/<id>/drawing` and
    `hi/<id>/strokes.json`, a row into the D1 `submissions` table with status `new`, then an
    optional webhook notification.
-5. A cron running every minute picks up rows with status `queued_mail` and sends the reply through
+5. Client-side, `draw.js` notices the stamp landing in `#result` and plays the success animation
+   described below.
+6. A cron running every minute picks up rows with status `queued_mail` and sends the reply through
    the `EMAIL` binding, quoting the original message underneath.
+
+### The success animation, and the `.stamp` contract
+
+When a submission succeeds, the toolbar and fields collapse away, the canvas is wiped
+left-to-right, and the word "thanks" is drawn onto it in cursive. This is worth understanding
+before you touch either side of it:
+
+- **`draw.js` watches `#result` with a `MutationObserver`, looking for `.stamp`.** It deliberately
+  does not listen for htmx events, because those names changed between htmx major versions. That
+  makes the `stamp` class name in the `POST /hi` response an API between the server and the client:
+  rename it in `src/index.ts` and the animation silently stops firing.
+- **The cursive "thanks" is SVG path data rendered onto the canvas** via `Path2D`, authored in a
+  300×140 design space. Stroke lengths are measured by mounting a hidden `<svg>` and calling
+  `getTotalLength()`, then cached; the reveal is a `setLineDash` trick.
+- **The collapse is one-way.** A `sent` latch blocks further drawing and suppresses the resize
+  repaint. There's no longer a post-success form reset — the page stays collapsed until reload.
+- **`prefers-reduced-motion: reduce` is honored** by jumping straight to the finished state.
+
+You do not need to submit a form to work on this. Load the home page with **`?preview=thanks`** and
+the celebration fires on load.
 
 ### The part that isn't in this repo
 
@@ -79,8 +129,10 @@ npm run deploy        # CI does this on push to main
 ```
 
 `worker-configuration.d.ts` is **generated and gitignored**, and `src/index.ts` depends on the
-`CloudflareBindings` interface it declares. On a fresh clone `tsc` reports nine errors until you run
-`npm run cf-typegen`. Re-run it after editing bindings in `wrangler.jsonc`.
+`CloudflareBindings` interface it declares. On a fresh clone `tsc` fails with
+`Cannot find name 'CloudflareBindings'` plus a cascade of "Property 'DB'/'HI' does not exist"
+errors, all of which disappear once you run `npm run cf-typegen`. Re-run it after editing bindings
+in `wrangler.jsonc`.
 
 There is one **known pre-existing typecheck error** even after codegen: `Env.ENVIRONMENT` is typed
 `string | undefined` while wrangler generates the narrower literal union `"preview" | "production"`.
@@ -115,6 +167,16 @@ To exercise the reply path end to end, insert a submission through the UI, then 
 `status='queued_mail'` with a `mail_subject` and `mail_body` before triggering the scheduled
 endpoint.
 
+Shortcuts for the two things that are otherwise tedious to reach:
+
+| To see | Do this |
+| --- | --- |
+| The success animation | open `http://localhost:8787/?preview=thanks` |
+| The gallery with real content | submit a drawing through the UI, then open `/drawings` |
+
+Seeding the gallery via SQL alone won't work — the row needs a matching R2 object holding a valid
+`data:image/...;base64,` string, so it's easier to submit through the UI.
+
 ## Deploys
 
 Push to `main` deploys production. Opening a PR deploys a Worker named
@@ -124,7 +186,9 @@ when the PR closes.
 > [!WARNING]
 > **Preview shares production data.** The `preview` environment in `wrangler.jsonc` points at the
 > same `database_id` and the same R2 bucket as production. Submitting through a PR preview writes
-> real rows to the real database.
+> real rows to the real database — and since `/drawings` is unmoderated, a test drawing made on a
+> preview URL appears immediately on the **production** public wall, with no way to remove it from
+> inside the app. Use local dev for scratch submissions.
 
 Preview sets `ENVIRONMENT=preview` and an empty cron list, and `scheduled()` returns early unless
 `ENVIRONMENT === 'production'` — that's belt-and-braces to keep previews from mailing real people.
@@ -145,6 +209,8 @@ Keep both guards if you touch this.
   prefix.
 - **Failures in `waitUntil` must never surface to the user.** The submission response is already
   sent by then; catch and log instead.
+- **Class names in returned HTML fragments can be load-bearing.** `.stamp` is what triggers the
+  success animation. Grep `public/` before renaming anything in the markup.
 - **Frontend has no bundler.** `draw.js` is a plain IIFE, `shader.js` is an ES module pulling
   `@paper-design/shaders` from `esm.sh`, and htmx comes from a CDN `<script>` tag. The
   `@paper-design/shaders` dependency in `package.json` is not what the browser actually loads, so

@@ -15,3 +15,9 @@ alwaysApply: false
   threshold or a hint string here, change its counterpart in `src/index.ts` too.
 - Toolbar buttons carry state in `aria-pressed` and are keyboard-reachable. Preserve that when
   editing the controls.
+- The success animation triggers off a `MutationObserver` watching `#result` for `.stamp`. Keep it
+  that way rather than reintroducing htmx event listeners — the event names differ between htmx
+  versions, which is why it was written this way.
+- Iterate on that animation with `?preview=thanks` on the home page; it fires the celebration
+  without a submission. Keep that hook working, and keep the `prefers-reduced-motion` branch that
+  skips to the end state.

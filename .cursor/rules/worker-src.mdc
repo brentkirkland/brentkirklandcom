@@ -12,6 +12,10 @@ alwaysApply: false
   sent, so a throw is invisible to the user and to the request lifecycle.
 - Validation failures return status **422** with a bare HTML fragment (`<p class="hint">…</p>`), not
   JSON. htmx swaps the fragment into `#result`, so a JSON body would render as literal text.
+- The `stamp` class on the success fragment is a contract with `public/draw.js`, which watches
+  `#result` for it to start the success animation. Renaming it breaks that silently.
+- `GET /drawings` is public and has no moderation gate, so any query change there changes what the
+  world can see. It filters on `drawing_key`, not on `status` — don't assume `status` limits it.
 - Log with `console.log(JSON.stringify({ event: "snake_case_name", ... }))`. Reuse the existing
   event names where one fits.
 - `scheduled()` must keep its `ENVIRONMENT !== 'production'` early return. It is what stops PR
