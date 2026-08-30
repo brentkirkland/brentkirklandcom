@@ -13,7 +13,7 @@ if (container) {
         [0.14, 0.14, 0.14, 1.0],   // medium grey
       ],
       u_colorsCount: 3,
-      u_shape: 0,        // wave shape
+      u_shape: 5,        // blob shape
       u_softness: 0.8,
       u_intensity: 0.3,
       u_noise: 0.6,      // grainy texture!
