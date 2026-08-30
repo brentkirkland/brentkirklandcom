@@ -243,7 +243,7 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
     for (const row of results) {
       try {
         await env.EMAIL.send({
-          from: { email: "hi@brentkirkland.com", name: "Brent Kirkland" },
+          from: { email: "hi@agents.brentkirkland.com", name: "Brent Kirkland" },
           to: row.email,
           subject: row.mail_subject,
           text: row.mail_body,
