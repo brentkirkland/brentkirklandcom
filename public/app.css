@@ -97,6 +97,9 @@ a:hover { text-decoration-color: var(--paper); }
   align-items: center;
   gap: 0.4rem;
 }
+.tool-group-clear {
+  margin-left: auto;
+}
 .tool-label {
   font-size: var(--type-ui);
   font-weight: 400;
@@ -199,13 +202,27 @@ button[type="submit"] {
   padding: 0.5rem 1rem;
 }
 button[type="submit"]:hover { background: #fff; }
-#clear {
-  background: none;
-  border: 0;
-  color: color-mix(in srgb, var(--paper) 60%, transparent);
-  padding: 0.5rem 0.75rem;
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  background: color-mix(in srgb, var(--paper) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--paper) 22%, transparent);
+  color: color-mix(in srgb, var(--paper) 65%, transparent);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  line-height: 1;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
-#clear:hover { color: var(--paper); }
+.icon-btn svg { flex: none; }
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  color: var(--paper);
+  background: color-mix(in srgb, #c23b22 22%, transparent);
+  border-color: color-mix(in srgb, #c23b22 45%, transparent);
+}
+.icon-btn:active { transform: translateY(1px); }
 .hint {
   font-size: var(--type-ui);
   font-weight: 400;

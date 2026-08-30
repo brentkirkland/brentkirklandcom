@@ -61,6 +61,21 @@ const page = () => html`<!doctype html>
             <button type="button" class="size" data-size="5" aria-label="Medium" aria-pressed="true"><span></span></button>
             <button type="button" class="size" data-size="10" aria-label="Thick" aria-pressed="false"><span></span></button>
           </div>
+          <div class="tool-group tool-group-clear">
+            <button type="button" id="clear" class="icon-btn" aria-label="Clear drawing" title="Clear drawing">
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">
+                <path
+                  d="M4 7h16M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>Clear</span>
+            </button>
+          </div>
         </div>
 
         <div id="pad-wrap"><canvas id="pad"></canvas></div>
@@ -77,7 +92,6 @@ const page = () => html`<!doctype html>
           </label>
           <div class="row">
             <button type="submit">Send</button>
-            <button type="button" id="clear">Clear</button>
             <p id="client-hint" class="hint" hidden>A scribble isn't a picture. Draw a little more.</p>
           </div>
           <div id="result"></div>
