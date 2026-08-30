@@ -34,5 +34,31 @@
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
+  },
+  "env": {
+    "preview": {
+      // Preview deployments use the same configuration as production
+      // but can be customized here if needed
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "brentkirklandcom",
+          "database_id": "bc6ba2ce-f8b2-40d4-abde-92f3880946db",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "HI",
+          "bucket_name": "brentkirklandcom-hi"
+        }
+      ],
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "allowed_sender_addresses": ["hi@brentkirkland.com"]
+        }
+      ]
+    }
   }
 }
