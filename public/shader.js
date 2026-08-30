@@ -1,18 +1,24 @@
-import { ShaderMount, neuroNoiseFragmentShader } from 'https://esm.sh/@paper-design/shaders@0.0.80';
+import { ShaderMount, grainGradientFragmentShader } from 'https://esm.sh/@paper-design/shaders@0.0.80';
 
 const container = document.getElementById('shader-bg');
 if (container) {
   new ShaderMount(
     container,
-    neuroNoiseFragmentShader,
+    grainGradientFragmentShader,
     {
-      u_colorFront: [0.1, 1.0, 1.0, 1.0],
-      u_colorMid: [0.15, 0.6, 1.0, 1.0],
       u_colorBack: [0.0, 0.0, 0.0, 1.0],
-      u_brightness: 0.3,
-      u_contrast: 0.6,
+      u_colors: [
+        [0.10, 0.10, 0.10, 1.0],   // dark grey
+        [0.18, 0.18, 0.18, 1.0],   // grey (20% darker total)
+        [0.14, 0.14, 0.14, 1.0],   // medium grey
+      ],
+      u_colorsCount: 3,
+      u_shape: 5,        // blob shape
+      u_softness: 0.8,
+      u_intensity: 0.3,
+      u_noise: 0.6,      // grainy texture!
       u_fit: 2,
-      u_scale: 1.2,
+      u_scale: 1.0,
       u_rotation: 0,
       u_offsetX: 0,
       u_offsetY: 0,
