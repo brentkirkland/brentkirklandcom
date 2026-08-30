@@ -5,6 +5,8 @@ interface Env extends CloudflareBindings {
   EMAIL: SendEmail;
   HI_WEBHOOK_URL?: string;
   HI_WEBHOOK_TOKEN?: string;
+  AGENT_CHECKPOINT_WEBHOOK_URL?: string;
+  AGENT_CHECKPOINT_WEBHOOK_SECRET?: string;
   ENVIRONMENT?: string;
 }
 
@@ -279,6 +281,18 @@ app.post("/agent", async (c) => {
     return c.json({ ok: false, error: "rate_limited" }, 429);
   }
 
+  c.executionCtx.waitUntil(
+    notifyAgentCheckpoint(c.env, {
+      id,
+      why,
+      userAgent,
+      tokenMatched,
+      createdAt,
+      source,
+      ip,
+    }),
+  );
+
   return c.json({ ok: true });
 });
 
@@ -450,6 +464,74 @@ app.post("/hi", async (c) => {
     </div>
   `);
 });
+
+async function notifyAgentCheckpoint(
+  env: Env,
+  payload: {
+    id: string;
+    why: string;
+    userAgent: string;
+    tokenMatched: boolean;
+    createdAt: string;
+    source: string;
+    ip: string;
+  },
+): Promise<void> {
+  const webhookUrl = env.AGENT_CHECKPOINT_WEBHOOK_URL?.trim();
+  const webhookSecret = env.AGENT_CHECKPOINT_WEBHOOK_SECRET
+    ? bearerToken(env.AGENT_CHECKPOINT_WEBHOOK_SECRET)
+    : "";
+
+  if (!webhookUrl || !webhookSecret) {
+    console.log(
+      JSON.stringify({
+        event: "agent_webhook_skipped",
+        id: payload.id,
+        hasUrl: Boolean(webhookUrl),
+        hasSecret: Boolean(webhookSecret),
+      }),
+    );
+    return;
+  }
+
+  try {
+    const webhookResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${webhookSecret}`,
+      },
+      body: JSON.stringify({
+        why: payload.why,
+        userAgent: payload.userAgent,
+        tokenMatched: payload.tokenMatched,
+        timestamp: payload.createdAt,
+        source: payload.source || undefined,
+        ip: payload.ip,
+      }),
+    });
+
+    if (webhookResponse.ok) {
+      console.log(JSON.stringify({ event: "agent_webhook_sent", id: payload.id }));
+    } else {
+      console.log(
+        JSON.stringify({
+          event: "agent_webhook_failed",
+          id: payload.id,
+          status: webhookResponse.status,
+        }),
+      );
+    }
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        event: "agent_webhook_failed",
+        id: payload.id,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
+}
 
 function formatEmailWithQuote(mailBody: string, originalMessage: string | null, createdAt: string | null, senderEmail: string): string {
   if (!originalMessage || originalMessage.trim().length === 0) {
