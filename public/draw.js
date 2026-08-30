@@ -10,6 +10,44 @@
   const MIN = 140;
   if (!canvas || !wrap || !form || !drawing || !strokesEl || !email || !message || !hint) return;
 
+  // A human rarely draws a perfectly straight line. Strokes with very few
+  // points, or whose path length barely exceeds the straight-line distance
+  // between their endpoints, are treated as "lines" rather than sketching.
+  // The server re-checks this so the form can't be bypassed by POSTing raw
+  // strokes data.
+  const LINE_STRAIGHTNESS_RATIO = 0.985;
+  const MIN_PATH_LENGTH = 4;
+  const MOSTLY_LINES_RATIO = 0.5;
+  const TINY_MEAN_POINTS = 5;
+
+  const isLineStroke = (points) => {
+    if (!points || points.length < 3) return true;
+    let pathLen = 0;
+    for (let i = 1; i < points.length; i++) {
+      pathLen += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+    }
+    if (pathLen < MIN_PATH_LENGTH) return true;
+    const first = points[0];
+    const last = points[points.length - 1];
+    const chordLen = Math.hypot(last.x - first.x, last.y - first.y);
+    return chordLen / pathLen > LINE_STRAIGHTNESS_RATIO;
+  };
+
+  const looksHandDrawn = (strokeList) => {
+    if (!strokeList || strokeList.length === 0) return false;
+    let lineCount = 0;
+    let totalPoints = 0;
+    for (const stroke of strokeList) {
+      const points = (stroke && stroke.points) || [];
+      totalPoints += points.length;
+      if (isLineStroke(points)) lineCount += 1;
+    }
+    const meanPoints = totalPoints / strokeList.length;
+    if (lineCount / strokeList.length > MOSTLY_LINES_RATIO) return false;
+    if (meanPoints < TINY_MEAN_POINTS) return false;
+    return true;
+  };
+
   const COLORS = ["#1c1814", "#c23b22", "#2f6fed", "#2f9e44", "#e6a700", "#f3eee4"];
   const PAPER = "#f3eee4";
   const INK = "#1c1814";
@@ -365,6 +403,13 @@
         e.preventDefault();
         e.stopImmediatePropagation();
         hint.textContent = "A scribble isn't a picture. Draw a little more.";
+        hint.hidden = false;
+        return;
+      }
+      if (!looksHandDrawn(strokes)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        hint.textContent = "That's mostly straight lines. Draw, don't plot points.";
         hint.hidden = false;
         return;
       }
