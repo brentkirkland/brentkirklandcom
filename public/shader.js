@@ -7,12 +7,13 @@ if (container) {
     simplexNoiseFragmentShader,
     {
       u_colors: [
-        [0.05, 0.05, 0.15, 1.0],  // dark blue
-        [0.15, 0.1, 0.2, 1.0],    // dark purple
-        [0.1, 0.15, 0.25, 1.0],   // dark teal
-        [0.08, 0.12, 0.18, 1.0],  // dark blue-grey
+        [0.0, 0.0, 0.0, 1.0],      // black
+        [0.08, 0.08, 0.08, 1.0],   // very dark grey
+        [0.15, 0.15, 0.15, 1.0],   // dark grey
+        [0.22, 0.22, 0.22, 1.0],   // medium dark grey
+        [0.3, 0.3, 0.3, 1.0],      // grey
       ],
-      u_colorsCount: 4,
+      u_colorsCount: 5,
       u_stepsPerColor: 1,
       u_softness: 1.0,
       u_fit: 2,
