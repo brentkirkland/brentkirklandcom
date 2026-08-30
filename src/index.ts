@@ -225,10 +225,37 @@ app.post("/hi", async (c) => {
   `);
 });
 
+function formatEmailWithQuote(mailBody: string, originalMessage: string | null, createdAt: string | null, senderEmail: string): string {
+  if (!originalMessage || originalMessage.trim().length === 0) {
+    return mailBody;
+  }
+
+  const quotedLines = originalMessage.split('\n').map(line => `> ${line}`).join('\n');
+  
+  let attribution = '';
+  if (createdAt) {
+    const date = new Date(createdAt).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Los_Angeles',
+      timeZoneName: 'short'
+    });
+    attribution = `On ${date}, ${senderEmail} wrote:`;
+  } else {
+    attribution = `On your note, you wrote:`;
+  }
+
+  return `${mailBody}\n\n${attribution}\n${quotedLines}`;
+}
+
 async function scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
   try {
     const { results } = await env.DB.prepare(
-      `SELECT id, email, mail_subject, mail_body
+      `SELECT id, email, mail_subject, mail_body, message, created_at
        FROM submissions
        WHERE status = 'queued_mail'
          AND email IS NOT NULL
@@ -236,7 +263,7 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
          AND mail_body IS NOT NULL
          AND mailed_at IS NULL
        LIMIT 10`
-    ).all<{ id: string; email: string; mail_subject: string; mail_body: string }>();
+    ).all<{ id: string; email: string; mail_subject: string; mail_body: string; message: string | null; created_at: string | null }>();
 
     if (!results || results.length === 0) {
       return;
@@ -244,11 +271,13 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
 
     for (const row of results) {
       try {
+        const emailBody = formatEmailWithQuote(row.mail_body, row.message, row.created_at, row.email);
+        
         await env.EMAIL.send({
-          from: { email: "hi@brentkirkland.com", name: "Brent Kirkland" },
+          from: { email: "hi@agents.brentkirkland.com", name: "Brent Kirkland" },
           to: row.email,
           subject: row.mail_subject,
-          text: row.mail_body,
+          text: emailBody,
         });
 
         const now = new Date().toISOString();
