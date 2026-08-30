@@ -278,6 +278,25 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
           throw new Error(`Quote formatting failed: ${(quoteErr as Error).message}`);
         }
         
+        try {
+          const probeResult = await env.DB.prepare(
+            `SELECT mail_error_code FROM submissions WHERE id = ?`
+          ).bind(row.id).first();
+          console.log(JSON.stringify({
+            event: "mail_schema_probe",
+            id: row.id,
+            success: true,
+            hasColumn: probeResult !== null,
+          }));
+        } catch (probeErr) {
+          console.log(JSON.stringify({
+            event: "mail_schema_probe",
+            id: row.id,
+            success: false,
+            error: String(probeErr),
+          }));
+        }
+        
         console.log(JSON.stringify({
           event: "mail_attempt",
           id: row.id,
@@ -321,11 +340,13 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
           errorMessage = 'Failed to extract error message';
         }
 
+        const diagnosticStatus = `mail_failed:${errorCode}`.slice(0, 99);
+
         try {
           await env.DB.prepare(
-            `UPDATE submissions SET status = 'mail_failed', mail_error_code = ?, mail_error = ? WHERE id = ?`
+            `UPDATE submissions SET status = ?, mail_error_code = ?, mail_error = ? WHERE id = ?`
           )
-            .bind(errorCode, errorMessage, row.id)
+            .bind(diagnosticStatus, errorCode, errorMessage, row.id)
             .run();
         } catch (updateErr) {
           console.error('CRITICAL: Failed to persist error details:', JSON.stringify({
@@ -338,9 +359,9 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
           
           try {
             await env.DB.prepare(
-              `UPDATE submissions SET status = 'mail_failed' WHERE id = ?`
+              `UPDATE submissions SET status = ? WHERE id = ?`
             )
-              .bind(row.id)
+              .bind(diagnosticStatus, row.id)
               .run();
           } catch {
             console.error('CRITICAL: Failed to even update status for id:', row.id);
