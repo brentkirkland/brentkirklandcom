@@ -156,8 +156,6 @@ interface Stroke {
 // treated as "lines" rather than sketching.
 const LINE_STRAIGHTNESS_RATIO = 0.985;
 const MIN_PATH_LENGTH = 4;
-const MOSTLY_LINES_RATIO = 0.5;
-const TINY_MEAN_POINTS = 5;
 
 const isLineStroke = (points: StrokePoint[]): boolean => {
   if (points.length < 3) return true;
@@ -174,19 +172,18 @@ const isLineStroke = (points: StrokePoint[]): boolean => {
   return chordLen / pathLen > LINE_STRAIGHTNESS_RATIO;
 };
 
+// Requires at least two curvy strokes, no matter how many straight ticks
+// (e.g. sprinklers, hatching) are also on the canvas. A single squiggle
+// isn't enough, and an all-lines drawing (like 2-point bot strokes) is
+// rejected.
 const looksHandDrawn = (strokes: Stroke[]): boolean => {
   if (strokes.length === 0) return false;
-  let lineCount = 0;
-  let totalPoints = 0;
+  let curvyCount = 0;
   for (const stroke of strokes) {
-    const points = stroke.points ?? [];
-    totalPoints += points.length;
-    if (isLineStroke(points)) lineCount += 1;
+    if (!isLineStroke(stroke.points ?? [])) curvyCount += 1;
+    if (curvyCount >= 2) return true;
   }
-  const meanPoints = totalPoints / strokes.length;
-  if (lineCount / strokes.length > MOSTLY_LINES_RATIO) return false;
-  if (meanPoints < TINY_MEAN_POINTS) return false;
-  return true;
+  return false;
 };
 
 app.get("/", (c) => c.html(page()));
@@ -284,7 +281,7 @@ app.post("/hi", async (c) => {
 
   if (!looksHandDrawn(strokes)) {
     return c.html(
-      html`<p class="hint">That's mostly straight lines. Draw, don't plot points.</p>`,
+      html`<p class="hint">Draw a bit more than one line.</p>`,
       422,
     );
   }

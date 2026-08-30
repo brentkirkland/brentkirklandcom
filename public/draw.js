@@ -17,8 +17,6 @@
   // strokes data.
   const LINE_STRAIGHTNESS_RATIO = 0.985;
   const MIN_PATH_LENGTH = 4;
-  const MOSTLY_LINES_RATIO = 0.5;
-  const TINY_MEAN_POINTS = 5;
 
   const isLineStroke = (points) => {
     if (!points || points.length < 3) return true;
@@ -33,19 +31,18 @@
     return chordLen / pathLen > LINE_STRAIGHTNESS_RATIO;
   };
 
+  // Requires at least two curvy strokes, no matter how many straight ticks
+  // (e.g. sprinklers, hatching) are also on the canvas. A single squiggle
+  // isn't enough, and an all-lines drawing (like 2-point bot strokes) is
+  // rejected.
   const looksHandDrawn = (strokeList) => {
     if (!strokeList || strokeList.length === 0) return false;
-    let lineCount = 0;
-    let totalPoints = 0;
+    let curvyCount = 0;
     for (const stroke of strokeList) {
-      const points = (stroke && stroke.points) || [];
-      totalPoints += points.length;
-      if (isLineStroke(points)) lineCount += 1;
+      if (!isLineStroke((stroke && stroke.points) || [])) curvyCount += 1;
+      if (curvyCount >= 2) return true;
     }
-    const meanPoints = totalPoints / strokeList.length;
-    if (lineCount / strokeList.length > MOSTLY_LINES_RATIO) return false;
-    if (meanPoints < TINY_MEAN_POINTS) return false;
-    return true;
+    return false;
   };
 
   const COLORS = ["#1c1814", "#c23b22", "#2f6fed", "#2f9e44", "#e6a700", "#f3eee4"];
@@ -409,7 +406,7 @@
       if (!looksHandDrawn(strokes)) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        hint.textContent = "That's mostly straight lines. Draw, don't plot points.";
+        hint.textContent = "Draw a bit more than one line.";
         hint.hidden = false;
         return;
       }
