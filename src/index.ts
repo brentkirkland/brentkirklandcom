@@ -1,7 +1,12 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 
-const app = new Hono();
+interface Env extends CloudflareBindings {
+  HI_WEBHOOK_URL?: string;
+  HI_WEBHOOK_TOKEN?: string;
+}
+
+const app = new Hono<{ Bindings: Env }>();
 
 const MIN_MESSAGE = 12;
 const MAX_MESSAGE = 2000;
@@ -130,15 +135,73 @@ app.post("/hi", async (c) => {
     );
   }
 
-  // Visitor text is quoted data only. Storage / scoring later.
-  void message;
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  c.executionCtx.waitUntil(
+    (async () => {
+      try {
+        const drawingKey = `hi/${id}/drawing`;
+        const strokesKey = `hi/${id}/strokes.json`;
+
+        await Promise.all([
+          c.env.HI.put(drawingKey, drawing),
+          c.env.HI.put(strokesKey, strokesRaw),
+        ]);
+
+        await c.env.DB.prepare(
+          `INSERT INTO submissions (id, created_at, email, message, stroke_count, point_count, drawing_key, strokes_key, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new')`
+        )
+          .bind(id, createdAt, email, message, strokeCount, pointCount, drawingKey, strokesKey)
+          .run();
+
+        console.log(JSON.stringify({ event: "submission_stored", id }));
+
+        if (c.env.HI_WEBHOOK_URL && c.env.HI_WEBHOOK_TOKEN) {
+          const messagePreview = message.length > 200 ? message.slice(0, 200) : message;
+          const webhookPayload = {
+            id,
+            email,
+            stroke_count: strokeCount,
+            point_count: pointCount,
+            message_preview: messagePreview,
+          };
+
+          const webhookResponse = await fetch(c.env.HI_WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${c.env.HI_WEBHOOK_TOKEN}`,
+            },
+            body: JSON.stringify(webhookPayload),
+          });
+
+          if (webhookResponse.ok) {
+            console.log(JSON.stringify({ event: "webhook_sent", id }));
+          } else {
+            console.log(JSON.stringify({ 
+              event: "webhook_failed", 
+              id, 
+              status: webhookResponse.status 
+            }));
+          }
+        }
+      } catch (err) {
+        console.error(JSON.stringify({ 
+          event: "persistence_error", 
+          id, 
+          error: err instanceof Error ? err.message : String(err) 
+        }));
+      }
+    })()
+  );
 
   return c.html(html`
     <div class="stamp">
       <p class="stamp-title">Looks human.</p>
       <p>
-        Thanks. If this was real, I'd write you at ${email}. Drawing and notes
-        aren't stored yet.
+        Thanks. I'll write you at ${email}.
       </p>
     </div>
   `);
