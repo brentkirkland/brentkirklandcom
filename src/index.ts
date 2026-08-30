@@ -140,6 +140,55 @@ const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
 
 const emailOk = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
+interface StrokePoint {
+  x?: number;
+  y?: number;
+}
+
+interface Stroke {
+  points?: StrokePoint[];
+}
+
+// Mirrors the client-side check in public/draw.js so the gate can't be
+// skipped by POSTing the form directly. A human rarely draws a perfectly
+// straight line, so strokes with very few points, or whose path length
+// barely exceeds the straight-line distance between their endpoints, are
+// treated as "lines" rather than sketching.
+const LINE_STRAIGHTNESS_RATIO = 0.985;
+const MIN_PATH_LENGTH = 4;
+const MOSTLY_LINES_RATIO = 0.5;
+const TINY_MEAN_POINTS = 5;
+
+const isLineStroke = (points: StrokePoint[]): boolean => {
+  if (points.length < 3) return true;
+  let pathLen = 0;
+  for (let i = 1; i < points.length; i++) {
+    const dx = (points[i].x ?? 0) - (points[i - 1].x ?? 0);
+    const dy = (points[i].y ?? 0) - (points[i - 1].y ?? 0);
+    pathLen += Math.hypot(dx, dy);
+  }
+  if (pathLen < MIN_PATH_LENGTH) return true;
+  const first = points[0];
+  const last = points[points.length - 1];
+  const chordLen = Math.hypot((last.x ?? 0) - (first.x ?? 0), (last.y ?? 0) - (first.y ?? 0));
+  return chordLen / pathLen > LINE_STRAIGHTNESS_RATIO;
+};
+
+const looksHandDrawn = (strokes: Stroke[]): boolean => {
+  if (strokes.length === 0) return false;
+  let lineCount = 0;
+  let totalPoints = 0;
+  for (const stroke of strokes) {
+    const points = stroke.points ?? [];
+    totalPoints += points.length;
+    if (isLineStroke(points)) lineCount += 1;
+  }
+  const meanPoints = totalPoints / strokes.length;
+  if (lineCount / strokes.length > MOSTLY_LINES_RATIO) return false;
+  if (meanPoints < TINY_MEAN_POINTS) return false;
+  return true;
+};
+
 app.get("/", (c) => c.html(page()));
 
 app.get("/drawings", async (c) => {
@@ -214,15 +263,14 @@ app.post("/hi", async (c) => {
     );
   }
 
+  let strokes: Stroke[] = [];
   let strokeCount = 0;
   let pointCount = 0;
   try {
-    const parsed = JSON.parse(strokesRaw) as {
-      strokes?: Array<{ points?: unknown[] }>;
-    };
-    strokeCount = parsed.strokes?.length ?? 0;
-    pointCount =
-      parsed.strokes?.reduce((n, s) => n + (s.points?.length ?? 0), 0) ?? 0;
+    const parsed = JSON.parse(strokesRaw) as { strokes?: Stroke[] };
+    strokes = parsed.strokes ?? [];
+    strokeCount = strokes.length;
+    pointCount = strokes.reduce((n, s) => n + (s.points?.length ?? 0), 0);
   } catch {
     return c.html(html`<p class="hint">That drawing looked empty. Try again.</p>`, 422);
   }
@@ -230,6 +278,13 @@ app.post("/hi", async (c) => {
   if (strokeCount < 1 || pointCount < 12) {
     return c.html(
       html`<p class="hint">A scribble isn't a picture. Draw a little more.</p>`,
+      422,
+    );
+  }
+
+  if (!looksHandDrawn(strokes)) {
+    return c.html(
+      html`<p class="hint">That's mostly straight lines. Draw, don't plot points.</p>`,
       422,
     );
   }
