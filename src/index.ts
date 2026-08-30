@@ -41,7 +41,6 @@ const page = () => html`<!doctype html>
     <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
   </head>
   <body>
-    <div id="shader-bg"></div>
     <main>
       <div class="prose">
         <h1>Brent Kirkland</h1>
@@ -105,7 +104,6 @@ const page = () => html`<!doctype html>
       </footer>
     </main>
     <script src="/draw.js"></script>
-    <script type="module" src="/shader.js"></script>
   </body>
 </html>`;
 
@@ -120,7 +118,6 @@ const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
     <link rel="stylesheet" href="/app.css" />
   </head>
   <body>
-    <div id="shader-bg"></div>
     <main>
       <div class="prose">
         <p class="crumb"><a href="/">← Home</a></p>
@@ -147,7 +144,6 @@ const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
         <a href="/">Home</a>
       </footer>
     </main>
-    <script type="module" src="/shader.js"></script>
   </body>
 </html>`;
 
