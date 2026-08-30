@@ -79,8 +79,8 @@ const page = () => html`<!doctype html>
             <button type="button" id="clear">Clear</button>
             <p id="client-hint" class="hint" hidden>A scribble isn't a picture. Draw a little more.</p>
           </div>
-          <div id="result"></div>
         </div>
+        <div id="result"></div>
       </form>
 
       <footer>

@@ -11,6 +11,8 @@
   if (!canvas || !wrap || !form || !drawing || !strokesEl || !email || !message || !hint) return;
 
   const COLORS = ["#1c1814", "#c23b22", "#2f6fed", "#2f9e44", "#e6a700", "#f3eee4"];
+  const PAPER = "#f3eee4";
+  const INK = "#1c1814";
   let color = COLORS[0];
   let size = 5;
   let ink = 0;
@@ -22,6 +24,7 @@
   let dpr = 1;
   let cssW = 0;
   let cssH = 0;
+  let sent = false;
 
   const ctx = () => canvas.getContext("2d");
 
@@ -43,7 +46,7 @@
     canvas.height = Math.round(cssH * dpr);
     const c = ctx();
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.fillStyle = "#f3eee4";
+    c.fillStyle = PAPER;
     c.fillRect(0, 0, cssW, cssH);
     applyBrush();
     ink = 0;
@@ -71,6 +74,7 @@
   };
 
   canvas.addEventListener("pointerdown", (e) => {
+    if (sent) return;
     e.preventDefault();
     canvas.setPointerCapture(e.pointerId);
     if (!startedAt) startedAt = performance.now();
@@ -135,8 +139,209 @@
     if (result) result.innerHTML = "";
   });
 
+  // --- Success celebration -------------------------------------------------
+
+  const reducedMotion = () =>
+    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const easeInOutCubic = (t) =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  // "thanks" handwritten as one continuous cursive stroke plus the t crossbar,
+  // authored in a 300x140 design space (baseline y=100, x-height y=60).
+  const SCRIPT = {
+    w: 300,
+    h: 140,
+    pen: 5,
+    strokes: [
+      "M 12 104" +
+        " C 22 98 31 76 35 44" +
+        " C 34 62 33 85 35 96" +
+        " C 37 104 45 101 51 85" +
+        " C 59 62 67 34 64 27" +
+        " C 61 21 56 30 56 44" +
+        " C 56 62 59 85 60 97" +
+        " C 61 102 62 99 63 91" +
+        " C 65 74 73 63 79 67" +
+        " C 84 71 86 84 87 97" +
+        " C 88 103 95 100 99 86" +
+        " C 103 75 112 63 119 64" +
+        " C 110 61 101 70 100 82" +
+        " C 99 94 106 101 112 98" +
+        " C 118 95 121 87 122 71" +
+        " C 122 82 122 93 124 99" +
+        " C 126 104 132 100 137 86" +
+        " C 140 77 143 68 146 64" +
+        " C 146 74 146 88 147 97" +
+        " C 148 101 149 97 150 89" +
+        " C 152 72 159 62 165 66" +
+        " C 169 69 171 83 172 96" +
+        " C 173 102 180 99 184 86" +
+        " C 191 63 199 33 196 26" +
+        " C 193 20 188 29 188 44" +
+        " C 188 63 190 85 191 97" +
+        " C 192 102 193 98 194 90" +
+        " C 197 75 205 65 210 68" +
+        " C 214 71 210 78 204 79" +
+        " C 210 81 216 91 219 96" +
+        " C 221 101 228 99 232 87" +
+        " C 235 77 240 66 244 62" +
+        " C 249 66 251 76 248 85" +
+        " C 246 92 240 98 236 94" +
+        " C 233 90 237 85 242 87" +
+        " C 250 90 259 87 265 80",
+      "M 22 55 C 30 50 42 50 50 53",
+    ],
+  };
+
+  let scriptLengths = null;
+  // getTotalLength needs the path to live in the document, so measure inside
+  // a hidden SVG and cache the results.
+  const strokeLengths = () => {
+    if (scriptLengths) return scriptLengths;
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("aria-hidden", "true");
+    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+    const paths = SCRIPT.strokes.map((d) => {
+      const p = document.createElementNS(ns, "path");
+      p.setAttribute("d", d);
+      svg.appendChild(p);
+      return p;
+    });
+    document.body.appendChild(svg);
+    scriptLengths = paths.map((p) => p.getTotalLength());
+    svg.remove();
+    return scriptLengths;
+  };
+
+  const scriptLayout = () => {
+    const scale = Math.min((cssW * 0.7) / SCRIPT.w, (cssH * 0.62) / SCRIPT.h);
+    return {
+      scale,
+      ox: (cssW - SCRIPT.w * scale) / 2,
+      oy: (cssH - SCRIPT.h * scale) / 2,
+    };
+  };
+
+  const strokeScript = (progressByStroke) => {
+    const c = ctx();
+    const { scale, ox, oy } = scriptLayout();
+    c.save();
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = PAPER;
+    c.fillRect(0, 0, cssW, cssH);
+    c.translate(ox, oy);
+    c.scale(scale, scale);
+    c.strokeStyle = INK;
+    c.lineWidth = SCRIPT.pen;
+    c.lineCap = "round";
+    c.lineJoin = "round";
+    const lengths = strokeLengths();
+    SCRIPT.strokes.forEach((d, i) => {
+      const progress = progressByStroke[i];
+      if (progress <= 0) return;
+      const path = new Path2D(d);
+      if (progress >= 1) {
+        c.setLineDash([]);
+      } else {
+        const len = lengths[i];
+        c.setLineDash([len, len]);
+        c.lineDashOffset = len * (1 - progress);
+      }
+      c.stroke(path);
+    });
+    c.restore();
+  };
+
+  const wipeCanvas = (done) => {
+    const dur = 520;
+    const start = performance.now();
+    const band = Math.max(48, cssW * 0.12);
+    const step = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      const e = easeInOutCubic(p);
+      const edge = (cssW + band) * e;
+      const c = ctx();
+      c.save();
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      c.fillStyle = PAPER;
+      c.fillRect(0, 0, Math.max(0, edge - band), cssH);
+      const g = c.createLinearGradient(edge - band, 0, edge, 0);
+      g.addColorStop(0, PAPER);
+      g.addColorStop(1, PAPER + "00");
+      c.fillStyle = g;
+      c.fillRect(edge - band, 0, band, cssH);
+      c.restore();
+      if (p < 1) requestAnimationFrame(step);
+      else done();
+    };
+    requestAnimationFrame(step);
+  };
+
+  const writeThanks = () => {
+    const lengths = strokeLengths();
+    // Pen speed tied to path length so the crossbar dashes off quickly.
+    const durations = lengths.map((len) => Math.max(260, len * 2.2));
+    const gap = 140;
+    let strokeIdx = 0;
+    let strokeStart = performance.now();
+    const progress = SCRIPT.strokes.map(() => 0);
+    const step = (now) => {
+      const p = Math.min(1, Math.max(0, (now - strokeStart) / durations[strokeIdx]));
+      progress[strokeIdx] = easeInOutCubic(p);
+      strokeScript(progress);
+      if (p < 1) {
+        requestAnimationFrame(step);
+      } else if (strokeIdx < SCRIPT.strokes.length - 1) {
+        strokeIdx += 1;
+        strokeStart = now + gap;
+        setTimeout(() => requestAnimationFrame(step), gap);
+      }
+    };
+    requestAnimationFrame(step);
+  };
+
+  const collapse = (el, delay) => {
+    el.style.height = el.scrollHeight + "px";
+    el.style.overflow = "hidden";
+    void el.offsetHeight;
+    const ease = "cubic-bezier(0.65, 0, 0.35, 1)";
+    el.style.transition =
+      `height 0.55s ${ease} ${delay}ms, margin 0.55s ${ease} ${delay}ms, ` +
+      `opacity 0.4s ease ${delay}ms, transform 0.55s ${ease} ${delay}ms`;
+    el.style.height = "0px";
+    el.style.margin = "0px";
+    el.style.opacity = "0";
+    el.style.transform = "translateY(-8px)";
+    setTimeout(() => {
+      el.style.display = "none";
+    }, delay + 600);
+  };
+
+  const celebrate = () => {
+    if (sent) return;
+    sent = true;
+    drawingNow = false;
+    currentStroke = null;
+    canvas.style.pointerEvents = "none";
+    canvas.style.cursor = "default";
+    hint.hidden = true;
+    const toolbar = form.querySelector(".toolbar");
+    const fields = form.querySelector(".fields");
+    if (reducedMotion()) {
+      if (toolbar) toolbar.style.display = "none";
+      if (fields) fields.style.display = "none";
+      strokeScript(SCRIPT.strokes.map(() => 1));
+      return;
+    }
+    if (fields) collapse(fields, 0);
+    if (toolbar) collapse(toolbar, 120);
+    setTimeout(() => wipeCanvas(writeThanks), 380);
+  };
+
   const afterSuccess = () => {
-    if (document.querySelector("#result .stamp")) resetForm();
+    if (document.querySelector("#result .stamp")) celebrate();
   };
   form.addEventListener("htmx:afterSwap", afterSuccess);
   form.addEventListener("htmx:after-swap", afterSuccess);
@@ -174,6 +379,8 @@
 
   paint();
   window.addEventListener("resize", () => {
-    if (ink === 0) paint();
+    if (!sent && ink === 0) paint();
   });
+
+  if (new URLSearchParams(location.search).get("preview") === "thanks") celebrate();
 })();
