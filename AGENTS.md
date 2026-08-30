@@ -14,7 +14,7 @@ one file.
 | `src/index.ts` | The whole Worker: both HTML pages, all four routes, and the cron handler |
 | `public/` | Static assets served by Workers Assets — `app.css`, `draw.js` (canvas pad plus the success animation), `shader.js` (animated background) |
 | `migrations/` | D1 migrations, applied by `wrangler d1 migrations apply` |
-| `wrangler.jsonc` | Bindings, cron trigger, and the `preview` environment |
+| `wrangler.jsonc` | Bindings, custom domains, cron trigger, and the `preview` environment |
 | `.github/workflows/` | `deploy.yml` (push to `main`) and `preview.yml` (per-PR preview Worker) |
 
 Bindings, all declared in `wrangler.jsonc`: `DB` (D1), `HI` (R2), `EMAIL` (Send Email), plus the
@@ -190,9 +190,20 @@ when the PR closes.
 > preview URL appears immediately on the **production** public wall, with no way to remove it from
 > inside the app. Use local dev for scratch submissions.
 
-Preview sets `ENVIRONMENT=preview` and an empty cron list, and `scheduled()` returns early unless
-`ENVIRONMENT === 'production'` — that's belt-and-braces to keep previews from mailing real people.
-Keep both guards if you touch this.
+Production serves `brentkirkland.com` and `www.brentkirkland.com` as Worker custom domains, declared
+in the top-level `routes`.
+
+The `preview` environment exists mainly to *subtract* three things it would otherwise inherit, and
+each override matters:
+
+| Override | Why |
+| --- | --- |
+| `"routes": []` | Stops a preview deploy from taking over the production custom domains |
+| `"crons": []` | Stops previews from running the mail cron |
+| `ENVIRONMENT: "preview"` | Makes `scheduled()` return early, belt-and-braces with the empty cron list |
+
+Keep all three when you touch that block. Anything else added at the top level is inherited by
+preview unless it's overridden there too, which is the trap this environment keeps falling into.
 
 ## Conventions
 

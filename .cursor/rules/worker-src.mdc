@@ -22,5 +22,8 @@ alwaysApply: false
   preview Workers from emailing real people.
 - Preview and production share one D1 database and one R2 bucket. Treat every write path as
   production data.
+- The `preview` environment in `wrangler.jsonc` inherits everything you add at the top level. It
+  already has to blank out `routes` and `crons` for that reason, so when you add a top-level key
+  ask whether preview needs an override too.
 
 See @AGENTS.md for the full submission lifecycle and the `status` values.
