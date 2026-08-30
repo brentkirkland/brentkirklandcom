@@ -12,17 +12,17 @@ const page = () => html`<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Brent Kirkland</title>
-    <meta name="description" content="Brent Kirkland. Security Products at Fastly. Draw a picture, leave a message." />
+    <meta name="description" content="Brent Kirkland. Currently employed @ Fastly. Building Security Products." />
     <link rel="stylesheet" href="/app.css" />
     <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
   </head>
   <body>
     <main>
       <div class="prose">
-        <p class="eyebrow">Security Products</p>
         <h1>Brent Kirkland</h1>
-        <p class="lede">Currently employed @ <a href="https://www.fastly.com">Fastly</a>.</p>
-        <h2>Want to say hi?</h2>
+        <p class="lede">
+          Currently employed @ <a href="https://www.fastly.com">Fastly</a>. Building Security Products.
+        </p>
         <p class="pitch">
           I don't publish an inbox. Draw a picture, leave yours, and leave me a
           message. The drawing is how I know you're a person.
@@ -63,7 +63,7 @@ const page = () => html`<!doctype html>
             <textarea id="message" name="message" required minlength="${MIN_MESSAGE}" maxlength="${MAX_MESSAGE}" rows="4" placeholder="Why you're writing."></textarea>
           </label>
           <div class="row">
-            <button type="submit">That's a picture</button>
+            <button type="submit">Send</button>
             <button type="button" id="clear">Clear</button>
             <p id="client-hint" class="hint" hidden>A scribble isn't a picture. Draw a little more.</p>
           </div>
