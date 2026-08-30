@@ -77,11 +77,7 @@ jobs:
               comment.body.includes('Preview deployment')
             );
             
-            const body = `## 🚀 Preview deployment ready!
-            
-Your preview is available at: ${previewUrl}
-
-This preview will be automatically updated when you push new commits to this PR.`;
+            const body = `## 🚀 Preview deployment ready!\n\nYour preview is available at: ${previewUrl}\n\nThis preview will be automatically updated when you push new commits to this PR.`;
             
             if (botComment) {
               // Update existing comment
