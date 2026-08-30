@@ -7,6 +7,10 @@
     "directory": "public"
   },
   "minify": true,
+  "routes": [
+    { "pattern": "brentkirkland.com", "custom_domain": true },
+    { "pattern": "www.brentkirkland.com", "custom_domain": true }
+  ],
   // HI_WEBHOOK_URL and HI_WEBHOOK_TOKEN are wrangler secrets (not in git): wrangler secret put HI_WEBHOOK_URL / HI_WEBHOOK_TOKEN
   "d1_databases": [
     {
@@ -42,6 +46,9 @@
     "preview": {
       // Preview deployments use the same configuration as production
       // but can be customized here if needed
+      // Empty routes prevent preview deploys from inheriting (and stealing) the
+      // production custom domains defined at the top level.
+      "routes": [],
       "triggers": {
         "crons": []
       },
