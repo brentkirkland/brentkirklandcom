@@ -270,7 +270,7 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
         const emailBody = formatEmailWithQuote(row.mail_body, row.message, row.created_at, row.email);
         
         await env.EMAIL.send({
-          from: { email: "hi@brentkirkland.com", name: "Brent Kirkland" },
+          from: { email: "hi@agents.brentkirkland.com", name: "Brent Kirkland" },
           to: row.email,
           subject: row.mail_subject,
           text: emailBody,
