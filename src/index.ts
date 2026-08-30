@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { html } from "hono/html";
 
 interface Env extends CloudflareBindings {
+  EMAIL: SendEmail;
   HI_WEBHOOK_URL?: string;
   HI_WEBHOOK_TOKEN?: string;
 }
@@ -222,4 +223,61 @@ app.post("/hi", async (c) => {
   `);
 });
 
-export default app;
+async function scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  try {
+    const { results } = await env.DB.prepare(
+      `SELECT id, email, mail_subject, mail_body
+       FROM submissions
+       WHERE status = 'queued_mail'
+         AND email IS NOT NULL
+         AND mail_subject IS NOT NULL
+         AND mail_body IS NOT NULL
+         AND mailed_at IS NULL
+       LIMIT 10`
+    ).all<{ id: string; email: string; mail_subject: string; mail_body: string }>();
+
+    if (!results || results.length === 0) {
+      return;
+    }
+
+    for (const row of results) {
+      try {
+        await env.EMAIL.send({
+          from: { email: "hi@brentkirkland.com", name: "Brent Kirkland" },
+          to: row.email,
+          subject: row.mail_subject,
+          text: row.mail_body,
+        });
+
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          `UPDATE submissions SET status = 'mailed', mailed_at = ? WHERE id = ?`
+        )
+          .bind(now, row.id)
+          .run();
+
+        console.log(JSON.stringify({ event: "mail_sent", id: row.id }));
+      } catch (err) {
+        await env.DB.prepare(
+          `UPDATE submissions SET status = 'mail_failed' WHERE id = ?`
+        )
+          .bind(row.id)
+          .run();
+
+        console.error(JSON.stringify({
+          event: "mail_failed",
+          id: row.id,
+          code: (err as Error).name,
+          error: (err as Error).message,
+        }));
+      }
+    }
+  } catch (err) {
+    console.error("Scheduled handler error:", err);
+  }
+}
+
+export default {
+  fetch: app.fetch.bind(app),
+  scheduled,
+};
