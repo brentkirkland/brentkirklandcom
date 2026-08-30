@@ -340,11 +340,14 @@
     setTimeout(() => wipeCanvas(writeThanks), 380);
   };
 
-  const afterSuccess = () => {
-    if (document.querySelector("#result .stamp")) celebrate();
-  };
-  form.addEventListener("htmx:afterSwap", afterSuccess);
-  form.addEventListener("htmx:after-swap", afterSuccess);
+  // Watch #result directly instead of relying on htmx event names,
+  // which changed across htmx major versions.
+  const result = document.getElementById("result");
+  if (result) {
+    new MutationObserver(() => {
+      if (result.querySelector(".stamp")) celebrate();
+    }).observe(result, { childList: true, subtree: true });
+  }
 
   form.addEventListener(
     "submit",
