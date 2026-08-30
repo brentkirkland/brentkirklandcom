@@ -39,6 +39,7 @@ const page = () => html`<!doctype html>
         <p class="pitch">
           Contact me by proving you're human with a drawing.
         </p>
+        <p class="wall-nudge"><a href="/drawings">See the wall of drawings people have left →</a></p>
       </div>
 
       <form id="hi" class="stage" hx-post="/hi" hx-target="#result" hx-swap="innerHTML">
@@ -109,6 +110,7 @@ const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
     <div id="shader-bg"></div>
     <main>
       <div class="prose">
+        <p class="crumb"><a href="/">← Home</a></p>
         <h1>Drawings</h1>
         <p class="lede">Left by visitors on their way to say hi.</p>
       </div>
@@ -124,6 +126,7 @@ const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
                     loading="lazy"
                     onerror="this.parentElement.remove()"
                   />
+                  <p class="gallery-id">${item.id.slice(0, 8)}</p>
                 </li>`,
             )}
           </ul>`}
