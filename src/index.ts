@@ -28,7 +28,7 @@ const page = () => html`<!doctype html>
     <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
   </head>
   <body>
-    <canvas id="shader-bg"></canvas>
+    <div id="shader-bg"></div>
     <main>
       <div class="prose">
         <h1>Brent Kirkland</h1>
