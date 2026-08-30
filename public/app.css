@@ -117,7 +117,8 @@ label.field {
   font-size: 0.8rem;
   color: color-mix(in srgb, var(--paper) 70%, transparent);
 }
-input[type="email"] {
+input[type="email"],
+textarea {
   width: 100%;
   max-width: 24rem;
   background: color-mix(in srgb, var(--paper) 6%, transparent);
@@ -127,7 +128,13 @@ input[type="email"] {
   padding: 0.65rem 0.75rem;
   font: inherit;
 }
-input[type="email"]:focus {
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+  line-height: 1.45;
+}
+input[type="email"]:focus,
+textarea:focus {
   outline: 2px solid color-mix(in srgb, var(--paper) 45%, transparent);
   outline-offset: 1px;
 }

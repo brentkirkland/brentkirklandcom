@@ -3,13 +3,16 @@ import { html } from "hono/html";
 
 const app = new Hono();
 
+const MIN_MESSAGE = 12;
+const MAX_MESSAGE = 2000;
+
 const page = () => html`<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Brent Kirkland</title>
-    <meta name="description" content="Brent Kirkland. Security Products at Fastly. Draw a picture and leave your email." />
+    <meta name="description" content="Brent Kirkland. Security Products at Fastly. Draw a picture, leave a note." />
     <link rel="stylesheet" href="/app.css" />
     <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
   </head>
@@ -21,8 +24,8 @@ const page = () => html`<!doctype html>
         <p class="lede">Currently employed @ <a href="https://www.fastly.com">Fastly</a>.</p>
         <h2>Want to say hi?</h2>
         <p class="pitch">
-          I don't give out my email. It turns into trash. Draw a picture instead,
-          then leave yours so I can write back. The drawing is the proof you're a person.
+          I don't publish an inbox. Draw a picture, leave yours, and tell me
+          what you want. The drawing is how I know you're a person.
         </p>
       </div>
 
@@ -55,6 +58,10 @@ const page = () => html`<!doctype html>
             Your email
             <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
           </label>
+          <label class="field">
+            What's this about
+            <textarea id="message" name="message" required minlength="${MIN_MESSAGE}" maxlength="${MAX_MESSAGE}" rows="4" placeholder="Why you're writing."></textarea>
+          </label>
           <div class="row">
             <button type="submit">That's a picture</button>
             <button type="button" id="clear">Clear</button>
@@ -82,10 +89,20 @@ app.post("/hi", async (c) => {
   const body = await c.req.parseBody();
   const drawing = String(body["drawing"] ?? "");
   const email = String(body["email"] ?? "").trim();
+  const message = String(body["message"] ?? "").trim();
   const strokesRaw = String(body["strokes"] ?? "");
 
   if (!emailOk(email)) {
     return c.html(html`<p class="hint">Leave an email so I can write back.</p>`, 422);
+  }
+  if (message.length < MIN_MESSAGE) {
+    return c.html(
+      html`<p class="hint">Say what you want in a sentence or two.</p>`,
+      422,
+    );
+  }
+  if (message.length > MAX_MESSAGE) {
+    return c.html(html`<p class="hint">That's a bit long. Trim it down.</p>`, 422);
   }
   if (drawing.length < 800) {
     return c.html(
@@ -114,13 +131,15 @@ app.post("/hi", async (c) => {
     );
   }
 
-  // Storage / scoring later. Telemetry arrived with the request.
+  // Visitor text is quoted data only. Storage / scoring later.
+  void message;
+
   return c.html(html`
     <div class="stamp">
       <p class="stamp-title">Looks human.</p>
       <p>
-        Thanks. If this was real, I'd write you at ${email}. Drawing and stroke
-        data aren't stored yet.
+        Thanks. If this was real, I'd write you at ${email}. Drawing and notes
+        aren't stored yet.
       </p>
     </div>
   `);
