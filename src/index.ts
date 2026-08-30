@@ -86,6 +86,8 @@ const page = () => html`<!doctype html>
         <a href="https://www.linkedin.com/in/brentland/">LinkedIn</a>
         <span class="dot">·</span>
         <a href="https://github.com/brentkirkland/brentkirklandcom">Source</a>
+        <span class="dot">·</span>
+        <span style="color: #888; font-size: 0.85em;">Preview Test ✓</span>
       </footer>
     </main>
     <script src="/draw.js"></script>
