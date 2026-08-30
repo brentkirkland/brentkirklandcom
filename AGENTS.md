@@ -46,7 +46,10 @@ Two things about that gallery are easy to get wrong:
   its 8-character prefix returns 404.
 
 Rows whose R2 object is missing or unparseable still render an `<img>` that 404s, so the gallery
-markup carries an inline `onerror` that removes the broken thumbnail client-side.
+markup carries an inline `onerror` that removes the broken thumbnail client-side. Note the failure
+mode that falls out of this: the "Nothing on the wall yet" message is server-rendered only when the
+query returns zero rows, so if every thumbnail 404s you get a silently blank page with no empty
+state and no error. Check the row count in D1 before assuming the query is broken.
 
 ## How a submission flows
 
