@@ -17,8 +17,6 @@
   // strokes data.
   const LINE_STRAIGHTNESS_RATIO = 0.985;
   const MIN_PATH_LENGTH = 4;
-  const MOSTLY_LINES_RATIO = 0.5;
-  const TINY_MEAN_POINTS = 5;
 
   const isLineStroke = (points) => {
     if (!points || points.length < 3) return true;
@@ -33,19 +31,12 @@
     return chordLen / pathLen > LINE_STRAIGHTNESS_RATIO;
   };
 
+  // Passes as soon as a single stroke is genuinely curvy, no matter how many
+  // straight ticks (e.g. sprinklers, hatching) are also on the canvas. Only
+  // an all-lines drawing (like 2-point bot strokes) is rejected.
   const looksHandDrawn = (strokeList) => {
     if (!strokeList || strokeList.length === 0) return false;
-    let lineCount = 0;
-    let totalPoints = 0;
-    for (const stroke of strokeList) {
-      const points = (stroke && stroke.points) || [];
-      totalPoints += points.length;
-      if (isLineStroke(points)) lineCount += 1;
-    }
-    const meanPoints = totalPoints / strokeList.length;
-    if (lineCount / strokeList.length > MOSTLY_LINES_RATIO) return false;
-    if (meanPoints < TINY_MEAN_POINTS) return false;
-    return true;
+    return strokeList.some((stroke) => !isLineStroke((stroke && stroke.points) || []));
   };
 
   const COLORS = ["#1c1814", "#c23b22", "#2f6fed", "#2f9e44", "#e6a700", "#f3eee4"];
