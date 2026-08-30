@@ -8,9 +8,9 @@ if (container) {
     {
       u_colorBack: [0.0, 0.0, 0.0, 1.0],
       u_colors: [
-        [0.11, 0.11, 0.11, 1.0],   // dark grey
-        [0.20, 0.20, 0.20, 1.0],   // grey (10% darker)
-        [0.16, 0.16, 0.16, 1.0],   // medium grey
+        [0.10, 0.10, 0.10, 1.0],   // dark grey
+        [0.18, 0.18, 0.18, 1.0],   // grey (20% darker total)
+        [0.14, 0.14, 0.14, 1.0],   // medium grey
       ],
       u_colorsCount: 3,
       u_shape: 0,        // wave shape
