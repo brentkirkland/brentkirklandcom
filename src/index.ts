@@ -5,6 +5,7 @@ interface Env extends CloudflareBindings {
   EMAIL: SendEmail;
   HI_WEBHOOK_URL?: string;
   HI_WEBHOOK_TOKEN?: string;
+  ENVIRONMENT?: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -253,6 +254,14 @@ function formatEmailWithQuote(mailBody: string, originalMessage: string | null, 
 }
 
 async function scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  if (env.ENVIRONMENT !== 'production') {
+    console.log(JSON.stringify({ 
+      event: 'scheduled_skipped_non_production', 
+      environment: env.ENVIRONMENT 
+    }));
+    return;
+  }
+
   try {
     const { results } = await env.DB.prepare(
       `SELECT id, email, mail_subject, mail_body, message, created_at
