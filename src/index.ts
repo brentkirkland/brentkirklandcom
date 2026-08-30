@@ -79,9 +79,9 @@ const page = () => html`<!doctype html>
             <button type="button" id="clear">Clear</button>
             <p id="client-hint" class="hint" hidden>A scribble isn't a picture. Draw a little more.</p>
           </div>
-          <div id="result"></div>
-          <p class="wall-nudge"><a href="/drawings">See the wall of drawings people have left →</a></p>
         </div>
+        <div id="result"></div>
+        <p class="wall-nudge"><a href="/drawings">See the wall of drawings people have left →</a></p>
       </form>
 
       <footer>
