@@ -271,7 +271,12 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
 
     for (const row of results) {
       try {
-        const emailBody = formatEmailWithQuote(row.mail_body, row.message, row.created_at, row.email);
+        let emailBody: string;
+        try {
+          emailBody = formatEmailWithQuote(row.mail_body, row.message, row.created_at, row.email);
+        } catch (quoteErr) {
+          throw new Error(`Quote formatting failed: ${(quoteErr as Error).message}`);
+        }
         
         await env.EMAIL.send({
           from: { email: "hi@agents.brentkirkland.com", name: "Brent Kirkland" },
@@ -282,24 +287,29 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
 
         const now = new Date().toISOString();
         await env.DB.prepare(
-          `UPDATE submissions SET status = 'mailed', mailed_at = ? WHERE id = ?`
+          `UPDATE submissions SET status = 'mailed', mailed_at = ?, mail_error_code = NULL, mail_error = NULL WHERE id = ?`
         )
           .bind(now, row.id)
           .run();
 
         console.log(JSON.stringify({ event: "mail_sent", id: row.id }));
       } catch (err) {
+        const errorObj = err as Error & { code?: string };
+        const errorCode = errorObj.code || errorObj.name || 'UNKNOWN_ERROR';
+        const errorMessage = errorObj.message || String(err);
+        const truncatedMessage = errorMessage.length > 500 ? errorMessage.slice(0, 500) : errorMessage;
+
         await env.DB.prepare(
-          `UPDATE submissions SET status = 'mail_failed' WHERE id = ?`
+          `UPDATE submissions SET status = 'mail_failed', mail_error_code = ?, mail_error = ? WHERE id = ?`
         )
-          .bind(row.id)
+          .bind(errorCode, truncatedMessage, row.id)
           .run();
 
         console.error(JSON.stringify({
           event: "mail_failed",
           id: row.id,
-          code: (err as Error).name,
-          error: (err as Error).message,
+          code: errorCode,
+          error: truncatedMessage,
         }));
       }
     }
