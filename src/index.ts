@@ -39,7 +39,6 @@ const page = () => html`<!doctype html>
         <p class="pitch">
           Contact me by proving you're human with a drawing.
         </p>
-        <p class="wall-nudge"><a href="/drawings">See the wall of drawings people have left →</a></p>
       </div>
 
       <form id="hi" class="stage" hx-post="/hi" hx-target="#result" hx-swap="innerHTML">
@@ -81,6 +80,7 @@ const page = () => html`<!doctype html>
             <p id="client-hint" class="hint" hidden>A scribble isn't a picture. Draw a little more.</p>
           </div>
           <div id="result"></div>
+          <p class="wall-nudge"><a href="/drawings">See the wall of drawings people have left →</a></p>
         </div>
       </form>
 
