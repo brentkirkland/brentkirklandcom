@@ -12,6 +12,9 @@
     { "pattern": "www.brentkirkland.com", "custom_domain": true }
   ],
   // HI_WEBHOOK_URL and HI_WEBHOOK_TOKEN are wrangler secrets (not in git): wrangler secret put HI_WEBHOOK_URL / HI_WEBHOOK_TOKEN
+  // AGENT_CHECKPOINT_WEBHOOK_URL and AGENT_CHECKPOINT_WEBHOOK_SECRET are optional wrangler secrets
+  // for a Grok Bot ping on successful POST /agent (Authorization: Bearer <sender key>).
+  // wrangler secret put AGENT_CHECKPOINT_WEBHOOK_URL / AGENT_CHECKPOINT_WEBHOOK_SECRET
   "d1_databases": [
     {
       "binding": "DB",
