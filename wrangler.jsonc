@@ -35,10 +35,19 @@
     "enabled": true,
     "head_sampling_rate": 1
   },
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
   "env": {
     "preview": {
       // Preview deployments use the same configuration as production
       // but can be customized here if needed
+      "triggers": {
+        "crons": []
+      },
+      "vars": {
+        "ENVIRONMENT": "preview"
+      },
       "d1_databases": [
         {
           "binding": "DB",
