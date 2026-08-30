@@ -278,6 +278,15 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
           throw new Error(`Quote formatting failed: ${(quoteErr as Error).message}`);
         }
         
+        console.log(JSON.stringify({
+          event: "mail_attempt",
+          id: row.id,
+          to: row.email,
+          from: "hi@agents.brentkirkland.com",
+          subject: row.mail_subject,
+          textLength: emailBody.length,
+        }));
+
         await env.EMAIL.send({
           from: { email: "hi@agents.brentkirkland.com", name: "Brent Kirkland" },
           to: row.email,
@@ -294,22 +303,55 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
 
         console.log(JSON.stringify({ event: "mail_sent", id: row.id }));
       } catch (err) {
-        const errorObj = err as Error & { code?: string };
-        const errorCode = errorObj.code || errorObj.name || 'UNKNOWN_ERROR';
-        const errorMessage = errorObj.message || String(err);
-        const truncatedMessage = errorMessage.length > 500 ? errorMessage.slice(0, 500) : errorMessage;
+        let errorCode = 'UNKNOWN_ERROR';
+        let errorMessage = 'Unknown error';
+        
+        try {
+          errorCode = String((err as any)?.code ?? (err as any)?.name ?? 'UNKNOWN_ERROR');
+        } catch {
+          errorCode = 'UNKNOWN_ERROR';
+        }
+        
+        try {
+          errorMessage = String((err as any)?.message ?? err);
+          if (errorMessage.length > 500) {
+            errorMessage = errorMessage.slice(0, 500);
+          }
+        } catch {
+          errorMessage = 'Failed to extract error message';
+        }
 
-        await env.DB.prepare(
-          `UPDATE submissions SET status = 'mail_failed', mail_error_code = ?, mail_error = ? WHERE id = ?`
-        )
-          .bind(errorCode, truncatedMessage, row.id)
-          .run();
+        try {
+          await env.DB.prepare(
+            `UPDATE submissions SET status = 'mail_failed', mail_error_code = ?, mail_error = ? WHERE id = ?`
+          )
+            .bind(errorCode, errorMessage, row.id)
+            .run();
+        } catch (updateErr) {
+          console.error('CRITICAL: Failed to persist error details:', JSON.stringify({
+            event: "mail_error_persist_failed",
+            id: row.id,
+            originalErrorCode: errorCode,
+            originalError: errorMessage,
+            persistError: String(updateErr),
+          }));
+          
+          try {
+            await env.DB.prepare(
+              `UPDATE submissions SET status = 'mail_failed' WHERE id = ?`
+            )
+              .bind(row.id)
+              .run();
+          } catch {
+            console.error('CRITICAL: Failed to even update status for id:', row.id);
+          }
+        }
 
         console.error(JSON.stringify({
           event: "mail_failed",
           id: row.id,
           code: errorCode,
-          error: truncatedMessage,
+          error: errorMessage,
         }));
       }
     }
