@@ -11,6 +11,11 @@ const app = new Hono<{ Bindings: Env }>();
 const MIN_MESSAGE = 12;
 const MAX_MESSAGE = 2000;
 
+const bearerToken = (raw: string) => {
+  const token = raw.trim();
+  return token.toLowerCase().startsWith("bearer ") ? token.slice(7).trim() : token;
+};
+
 const page = () => html`<!doctype html>
 <html lang="en">
   <head>
@@ -158,43 +163,53 @@ app.post("/hi", async (c) => {
 
         console.log(JSON.stringify({ event: "submission_stored", id }));
 
-        if (c.env.HI_WEBHOOK_URL && c.env.HI_WEBHOOK_TOKEN) {
-          const messagePreview = message.length > 200 ? message.slice(0, 200) : message;
-          const webhookPayload = {
+        const webhookUrl = c.env.HI_WEBHOOK_URL?.trim();
+        const webhookToken = c.env.HI_WEBHOOK_TOKEN
+          ? bearerToken(c.env.HI_WEBHOOK_TOKEN)
+          : "";
+
+        if (!webhookUrl || !webhookToken) {
+          console.log(JSON.stringify({ event: "webhook_skipped", id, hasUrl: Boolean(webhookUrl), hasToken: Boolean(webhookToken) }));
+          return;
+        }
+
+        const messagePreview = message.length > 200 ? message.slice(0, 200) : message;
+        const webhookResponse = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${webhookToken}`,
+          },
+          body: JSON.stringify({
             id,
             email,
             stroke_count: strokeCount,
             point_count: pointCount,
             message_preview: messagePreview,
-          };
+          }),
+        });
 
-          const webhookResponse = await fetch(c.env.HI_WEBHOOK_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${c.env.HI_WEBHOOK_TOKEN}`,
-            },
-            body: JSON.stringify(webhookPayload),
-          });
-
-          if (webhookResponse.ok) {
-            console.log(JSON.stringify({ event: "webhook_sent", id }));
-          } else {
-            console.log(JSON.stringify({ 
-              event: "webhook_failed", 
-              id, 
-              status: webhookResponse.status 
-            }));
-          }
+        if (webhookResponse.ok) {
+          console.log(JSON.stringify({ event: "webhook_sent", id }));
+        } else {
+          console.log(
+            JSON.stringify({
+              event: "webhook_failed",
+              id,
+              status: webhookResponse.status,
+            }),
+          );
         }
       } catch (err) {
-        console.error(JSON.stringify({ 
-          event: "persistence_error", 
-          id, 
-          error: err instanceof Error ? err.message : String(err) 
-        }));
+        console.error(
+          JSON.stringify({
+            event: "persistence_error",
+            id,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
       }
-    })()
+    })(),
   );
 
   return c.html(html`

@@ -5,9 +5,10 @@
   const drawing = document.getElementById("drawing");
   const strokesEl = document.getElementById("strokes");
   const email = document.getElementById("email");
+  const message = document.getElementById("message");
   const hint = document.getElementById("client-hint");
   const MIN = 140;
-  if (!canvas || !wrap || !form || !drawing || !strokesEl || !email || !hint) return;
+  if (!canvas || !wrap || !form || !drawing || !strokesEl || !email || !message || !hint) return;
 
   const COLORS = ["#1c1814", "#c23b22", "#2f6fed", "#2f9e44", "#e6a700", "#f3eee4"];
   let color = COLORS[0];
@@ -50,6 +51,14 @@
     currentStroke = null;
     drawing.value = "";
     strokesEl.value = "";
+  };
+
+  const resetForm = () => {
+    startedAt = 0;
+    paint();
+    email.value = "";
+    message.value = "";
+    hint.hidden = true;
   };
 
   const pos = (e) => {
@@ -121,12 +130,16 @@
   });
 
   document.getElementById("clear").addEventListener("click", () => {
-    startedAt = 0;
-    paint();
-    hint.hidden = true;
+    resetForm();
     const result = document.getElementById("result");
     if (result) result.innerHTML = "";
   });
+
+  const afterSuccess = () => {
+    if (document.querySelector("#result .stamp")) resetForm();
+  };
+  form.addEventListener("htmx:afterSwap", afterSuccess);
+  form.addEventListener("htmx:after-swap", afterSuccess);
 
   form.addEventListener(
     "submit",
