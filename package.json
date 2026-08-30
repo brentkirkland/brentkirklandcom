@@ -8,6 +8,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
+    "@paper-design/shaders": "^0.0.80",
     "hono": "^4.9.6"
   },
   "devDependencies": {
