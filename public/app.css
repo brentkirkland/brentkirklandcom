@@ -24,8 +24,9 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
-  opacity: 0.7;
+  z-index: 1;
+  opacity: 0.4;
+  pointer-events: none;
 }
 main {
   max-width: 56rem;
