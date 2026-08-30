@@ -24,8 +24,7 @@ const page = () => html`<!doctype html>
           Currently employed @ <a href="https://www.fastly.com">Fastly</a>. Building Security Products.
         </p>
         <p class="pitch">
-          I don't publish an inbox. Draw a picture, leave yours, and leave me a
-          message. The drawing is how I know you're a person.
+          Contact me by proving you're human with a drawing.
         </p>
       </div>
 
