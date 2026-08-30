@@ -172,12 +172,18 @@ const isLineStroke = (points: StrokePoint[]): boolean => {
   return chordLen / pathLen > LINE_STRAIGHTNESS_RATIO;
 };
 
-// Passes as soon as a single stroke is genuinely curvy, no matter how many
-// straight ticks (e.g. sprinklers, hatching) are also on the canvas. Only
-// an all-lines drawing (like 2-point bot strokes) is rejected.
+// Requires at least two curvy strokes, no matter how many straight ticks
+// (e.g. sprinklers, hatching) are also on the canvas. A single squiggle
+// isn't enough, and an all-lines drawing (like 2-point bot strokes) is
+// rejected.
 const looksHandDrawn = (strokes: Stroke[]): boolean => {
   if (strokes.length === 0) return false;
-  return strokes.some((stroke) => !isLineStroke(stroke.points ?? []));
+  let curvyCount = 0;
+  for (const stroke of strokes) {
+    if (!isLineStroke(stroke.points ?? [])) curvyCount += 1;
+    if (curvyCount >= 2) return true;
+  }
+  return false;
 };
 
 app.get("/", (c) => c.html(page()));
@@ -275,7 +281,7 @@ app.post("/hi", async (c) => {
 
   if (!looksHandDrawn(strokes)) {
     return c.html(
-      html`<p class="hint">That's mostly straight lines. Draw, don't plot points.</p>`,
+      html`<p class="hint">Draw a bit more than one line.</p>`,
       422,
     );
   }
