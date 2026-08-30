@@ -49,10 +49,19 @@ jobs:
         run: |
           # Deploy with a unique name for this PR
           WORKER_NAME="brentkirklandcom-pr-${{ github.event.pull_request.number }}"
-          npx wrangler deploy --name "$WORKER_NAME" --env preview
           
-          # Construct the preview URL
-          PREVIEW_URL="https://${WORKER_NAME}.brentkirkland.workers.dev"
+          # Deploy and capture the output
+          DEPLOY_OUTPUT=$(npx wrangler deploy --name "$WORKER_NAME" --env preview 2>&1)
+          echo "$DEPLOY_OUTPUT"
+          
+          # Extract the actual preview URL from wrangler output
+          PREVIEW_URL=$(echo "$DEPLOY_OUTPUT" | grep -oP 'https://[^\s]+\.workers\.dev' | head -1)
+          
+          if [ -z "$PREVIEW_URL" ]; then
+            echo "Warning: Could not extract preview URL from wrangler output"
+            PREVIEW_URL="https://${WORKER_NAME}.workers.dev"
+          fi
+          
           echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
