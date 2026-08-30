@@ -6,5 +6,23 @@
   "assets": {
     "directory": "public"
   },
-  "minify": true
+  "minify": true,
+  // HI_WEBHOOK_URL and HI_WEBHOOK_TOKEN are wrangler secrets (not in git): wrangler secret put HI_WEBHOOK_URL / HI_WEBHOOK_TOKEN
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "brentkirklandcom",
+      "database_id": "bc6ba2ce-f8b2-40d4-abde-92f3880946db"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "HI",
+      "bucket_name": "brentkirklandcom-hi"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
 }

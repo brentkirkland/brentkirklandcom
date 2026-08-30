@@ -9,5 +9,5 @@
     "types": ["@cloudflare/workers-types"],
     "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src", "worker-configuration.d.ts"]
 }
