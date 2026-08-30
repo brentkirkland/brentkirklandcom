@@ -64,6 +64,7 @@ const page = () => html`<!doctype html>
         </div>
 
         <div id="pad-wrap"><canvas id="pad"></canvas></div>
+        <p id="draw-metrics" class="draw-metrics" aria-live="polite">0 strokes · 0 points · 0 ink</p>
 
         <div class="fields">
           <label class="field">

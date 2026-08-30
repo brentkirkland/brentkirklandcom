@@ -7,8 +7,9 @@
   const email = document.getElementById("email");
   const message = document.getElementById("message");
   const hint = document.getElementById("client-hint");
+  const metricsEl = document.getElementById("draw-metrics");
   const MIN = 140;
-  if (!canvas || !wrap || !form || !drawing || !strokesEl || !email || !message || !hint) return;
+  if (!canvas || !wrap || !form || !drawing || !strokesEl || !email || !message || !hint || !metricsEl) return;
 
   const COLORS = ["#1c1814", "#c23b22", "#2f6fed", "#2f9e44", "#e6a700", "#f3eee4"];
   let color = COLORS[0];
@@ -33,6 +34,21 @@
     c.lineWidth = size;
   };
 
+  const pointTotal = () => {
+    const committed = strokes.reduce((n, s) => n + s.points.length, 0);
+    const current = currentStroke ? currentStroke.points.length : 0;
+    return committed + current;
+  };
+
+  const strokeTotal = () => strokes.length + (currentStroke && currentStroke.points.length > 1 ? 1 : 0);
+
+  const updateMetrics = () => {
+    const strokeCount = strokeTotal();
+    const pointCount = pointTotal();
+    const inkAmount = Math.round(ink);
+    metricsEl.textContent = `${strokeCount} stroke${strokeCount === 1 ? "" : "s"} · ${pointCount} point${pointCount === 1 ? "" : "s"} · ${inkAmount} ink`;
+  };
+
   const paint = () => {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     cssW = wrap.clientWidth;
@@ -51,6 +67,7 @@
     currentStroke = null;
     drawing.value = "";
     strokesEl.value = "";
+    updateMetrics();
   };
 
   const resetForm = () => {
@@ -100,6 +117,7 @@
       t: +p.t.toFixed(1),
     });
     last = p;
+    updateMetrics();
   });
 
   const endStroke = () => {
@@ -107,6 +125,7 @@
     currentStroke = null;
     drawingNow = false;
     last = null;
+    updateMetrics();
   };
   canvas.addEventListener("pointerup", endStroke);
   canvas.addEventListener("pointercancel", endStroke);

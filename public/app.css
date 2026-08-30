@@ -135,6 +135,13 @@ a:hover { text-decoration-color: var(--paper); }
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+.draw-metrics {
+  margin: 0.4rem 0 0;
+  font-size: var(--type-ui);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--paper) 45%, transparent);
+}
 .fields {
   margin-top: 1rem;
   display: grid;
