@@ -1,4 +1,4 @@
-import { ShaderMount, neuroNoiseFragmentShader } from '@paper-design/shaders';
+import { ShaderMount, neuroNoiseFragmentShader } from 'https://esm.sh/@paper-design/shaders@0.0.80';
 
 const container = document.getElementById('shader-bg');
 if (container) {
