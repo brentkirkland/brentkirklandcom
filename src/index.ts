@@ -81,12 +81,15 @@ const page = () => html`<!doctype html>
           </div>
         </div>
         <div id="result"></div>
+        <p class="wall-nudge"><a href="/drawings">See the wall of drawings people have left →</a></p>
       </form>
 
       <footer>
         <a href="https://www.linkedin.com/in/brentland/">LinkedIn</a>
         <span class="dot">·</span>
         <a href="https://github.com/brentkirkland/brentkirklandcom">Source</a>
+        <span class="dot">·</span>
+        <a href="/drawings">Drawings</a>
       </footer>
     </main>
     <script src="/draw.js"></script>
@@ -94,9 +97,96 @@ const page = () => html`<!doctype html>
   </body>
 </html>`;
 
+const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drawings · Brent Kirkland</title>
+    <meta name="description" content="Drawings left by visitors of brentkirkland.com." />
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div id="shader-bg"></div>
+    <main>
+      <div class="prose">
+        <p class="crumb"><a href="/">← Home</a></p>
+        <h1>Drawings</h1>
+        <p class="lede">Left by visitors on their way to say hi.</p>
+      </div>
+      ${items.length === 0
+        ? html`<p class="pitch">Nothing on the wall yet. <a href="/">Draw the first one.</a></p>`
+        : html`<ul class="gallery">
+            ${items.map(
+              (item) =>
+                html`<li>
+                  <img
+                    src="/drawings/${item.id}/image"
+                    alt="Visitor drawing"
+                    loading="lazy"
+                    onerror="this.parentElement.remove()"
+                  />
+                  <p class="gallery-id">${item.id.slice(0, 8)}</p>
+                </li>`,
+            )}
+          </ul>`}
+      <footer>
+        <a href="/">Home</a>
+      </footer>
+    </main>
+    <script type="module" src="/shader.js"></script>
+  </body>
+</html>`;
+
 const emailOk = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 app.get("/", (c) => c.html(page()));
+
+app.get("/drawings", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    `SELECT id FROM submissions
+     WHERE drawing_key IS NOT NULL AND drawing_key != ''
+     ORDER BY created_at DESC
+     LIMIT 300`,
+  ).all<{ id: string }>();
+
+  return c.html(drawingsPage(results ?? []));
+});
+
+// Drawings are stored in R2 as the raw canvas data URL string
+// ("data:image/png;base64,..."), so decode it back into image bytes here.
+app.get("/drawings/:id/image", async (c) => {
+  const id = c.req.param("id");
+
+  const row = await c.env.DB.prepare(
+    `SELECT drawing_key FROM submissions
+     WHERE id = ? AND drawing_key IS NOT NULL AND drawing_key != ''`,
+  )
+    .bind(id)
+    .first<{ drawing_key: string }>();
+
+  if (!row) {
+    return c.notFound();
+  }
+
+  const object = await c.env.HI.get(row.drawing_key);
+  if (!object) {
+    return c.notFound();
+  }
+
+  const stored = await object.text();
+  const match = /^data:(image\/[\w.+-]+);base64,([A-Za-z0-9+/=]+)$/.exec(stored);
+  if (!match) {
+    return c.notFound();
+  }
+
+  const bytes = Uint8Array.from(atob(match[2]), (ch) => ch.charCodeAt(0));
+
+  return c.body(bytes, 200, {
+    "Content-Type": match[1],
+    "Cache-Control": "public, max-age=86400",
+  });
+});
 
 app.post("/hi", async (c) => {
   const body = await c.req.parseBody();
