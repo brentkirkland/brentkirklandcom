@@ -1,0 +1,22 @@
+---
+globs: src/**/*.ts, wrangler.jsonc
+alwaysApply: false
+---
+
+- `src/index.ts` holds the page markup, the `POST /hi` handler, and the `scheduled` cron handler.
+  Keeping the Worker in one file is intentional; don't split it up as a drive-by refactor.
+- Bindings come from the generated `CloudflareBindings` interface. After editing bindings or vars in
+  `wrangler.jsonc`, run `npm run cf-typegen` or the typecheck will be wrong.
+- Anything slow belongs in `c.executionCtx.waitUntil(...)` so the user gets their response
+  immediately. Work in there must catch its own errors and log them — the response has already been
+  sent, so a throw is invisible to the user and to the request lifecycle.
+- Validation failures return status **422** with a bare HTML fragment (`<p class="hint">…</p>`), not
+  JSON. htmx swaps the fragment into `#result`, so a JSON body would render as literal text.
+- Log with `console.log(JSON.stringify({ event: "snake_case_name", ... }))`. Reuse the existing
+  event names where one fits.
+- `scheduled()` must keep its `ENVIRONMENT !== 'production'` early return. It is what stops PR
+  preview Workers from emailing real people.
+- Preview and production share one D1 database and one R2 bucket. Treat every write path as
+  production data.
+
+See @AGENTS.md for the full submission lifecycle and the `status` values.
