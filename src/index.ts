@@ -28,7 +28,7 @@ const page = () => html`<!doctype html>
     <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
   </head>
   <body>
-    <div id="shader-bg"></div>
+    <div id="shader-bg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:red;display:block !important;visibility:visible !important;opacity:1 !important;"></div>
     <main>
       <div class="prose">
         <h1>Brent Kirkland</h1>
