@@ -67,7 +67,7 @@ a:hover { text-decoration-color: var(--paper); }
 .wall-nudge {
   font-size: var(--type-ui);
   font-weight: 400;
-  margin: 0.25rem 0 0;
+  margin: 1.5rem 0 0;
 }
 .wall-nudge a {
   color: color-mix(in srgb, var(--paper) 55%, transparent);
