@@ -1,0 +1,23 @@
+---
+globs: public/**
+alwaysApply: false
+---
+
+- These files are served verbatim by Workers Assets. There is no bundler, no transpiler, and no
+  JSX — write browser-ready code that runs as-is.
+- `draw.js` is a single IIFE that bails out early if any expected element is missing. Element IDs
+  are the contract between it and the markup in `src/index.ts`; changing one means changing both.
+- `shader.js` is an ES module and imports `@paper-design/shaders` from `esm.sh` with the version
+  pinned **in the URL**. That pin, not the `package.json` entry, is what browsers load.
+- Interactivity is htmx plus small amounts of vanilla JS. Don't reach for a framework or add a
+  build step.
+- Client-side validation is a UX nicety only; `POST /hi` re-checks everything. If you change a
+  threshold or a hint string here, change its counterpart in `src/index.ts` too.
+- Toolbar buttons carry state in `aria-pressed` and are keyboard-reachable. Preserve that when
+  editing the controls.
+- The success animation triggers off a `MutationObserver` watching `#result` for `.stamp`. Keep it
+  that way rather than reintroducing htmx event listeners — the event names differ between htmx
+  versions, which is why it was written this way.
+- Iterate on that animation with `?preview=thanks` on the home page; it fires the celebration
+  without a submission. Keep that hook working, and keep the `prefers-reduced-motion` branch that
+  skips to the end state.
