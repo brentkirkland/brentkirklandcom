@@ -381,75 +381,54 @@ app.post("/hi", async (c) => {
 
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
+  const drawingKey = `hi/${id}/drawing`;
+  const strokesKey = `hi/${id}/strokes.json`;
 
-  c.executionCtx.waitUntil(
-    (async () => {
-      try {
-        const drawingKey = `hi/${id}/drawing`;
-        const strokesKey = `hi/${id}/strokes.json`;
+  // Store before responding: the "Looks human" HTML below should only ever
+  // be shown once the drawing is actually durable, so persistence happens
+  // in the request instead of a background waitUntil that could be
+  // cancelled before D1/R2 are written.
+  try {
+    await Promise.all([
+      c.env.HI.put(drawingKey, drawing),
+      c.env.HI.put(strokesKey, strokesRaw),
+    ]);
 
-        await Promise.all([
-          c.env.HI.put(drawingKey, drawing),
-          c.env.HI.put(strokesKey, strokesRaw),
-        ]);
+    await c.env.DB.prepare(
+      `INSERT INTO submissions (id, created_at, email, message, stroke_count, point_count, drawing_key, strokes_key, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new')`
+    )
+      .bind(id, createdAt, email, message, strokeCount, pointCount, drawingKey, strokesKey)
+      .run();
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        event: "persistence_error",
+        id,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return c.html(
+      html`<p class="hint">Something went wrong saving that. Try again in a moment.</p>`,
+      500,
+    );
+  }
 
-        await c.env.DB.prepare(
-          `INSERT INTO submissions (id, created_at, email, message, stroke_count, point_count, drawing_key, strokes_key, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new')`
-        )
-          .bind(id, createdAt, email, message, strokeCount, pointCount, drawingKey, strokesKey)
-          .run();
+  console.log(JSON.stringify({ event: "submission_stored", id }));
 
-        console.log(JSON.stringify({ event: "submission_stored", id }));
+  const messagePreview = message.length > 200 ? message.slice(0, 200) : message;
 
-        const webhookUrl = c.env.HI_WEBHOOK_URL?.trim();
-        const webhookToken = c.env.HI_WEBHOOK_TOKEN
-          ? bearerToken(c.env.HI_WEBHOOK_TOKEN)
-          : "";
-
-        if (!webhookUrl || !webhookToken) {
-          console.log(JSON.stringify({ event: "webhook_skipped", id, hasUrl: Boolean(webhookUrl), hasToken: Boolean(webhookToken) }));
-          return;
-        }
-
-        const messagePreview = message.length > 200 ? message.slice(0, 200) : message;
-        const webhookResponse = await fetch(webhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${webhookToken}`,
-          },
-          body: JSON.stringify({
-            id,
-            email,
-            stroke_count: strokeCount,
-            point_count: pointCount,
-            message_preview: messagePreview,
-          }),
-        });
-
-        if (webhookResponse.ok) {
-          console.log(JSON.stringify({ event: "webhook_sent", id }));
-        } else {
-          console.log(
-            JSON.stringify({
-              event: "webhook_failed",
-              id,
-              status: webhookResponse.status,
-            }),
-          );
-        }
-      } catch (err) {
-        console.error(
-          JSON.stringify({
-            event: "persistence_error",
-            id,
-            error: err instanceof Error ? err.message : String(err),
-          }),
-        );
-      }
-    })(),
-  );
+  // The webhook is fire-and-forget from here on: it runs after the response
+  // is on its way and is bounded by an AbortSignal timeout (see
+  // sendHiWebhook), so a hung endpoint can only fail the webhook, never the
+  // store above.
+  c.executionCtx.waitUntil(notifyHiWebhook(c.env, {
+    id,
+    email,
+    strokeCount,
+    pointCount,
+    messagePreview,
+  }));
 
   return c.html(html`
     <div class="stamp">
@@ -460,6 +439,105 @@ app.post("/hi", async (c) => {
     </div>
   `);
 });
+
+interface HiWebhookPayload {
+  id: string;
+  email: string;
+  strokeCount: number;
+  pointCount: number;
+  messagePreview: string;
+}
+
+// Bounds how long the webhook fetch can take, so a hung hi-submissions
+// endpoint can only ever fail the webhook (logged as webhook_failed), not
+// hang the waitUntil that carries it.
+const HI_WEBHOOK_TIMEOUT_MS = 5_000;
+
+// Shared by the live POST /hi path and the scheduled sweep below so both
+// send the exact same payload shape and logging.
+async function sendHiWebhook(env: Env, payload: HiWebhookPayload): Promise<"sent" | "failed" | "skipped"> {
+  const webhookUrl = env.HI_WEBHOOK_URL?.trim();
+  const webhookToken = env.HI_WEBHOOK_TOKEN ? bearerToken(env.HI_WEBHOOK_TOKEN) : "";
+
+  if (!webhookUrl || !webhookToken) {
+    console.log(
+      JSON.stringify({
+        event: "webhook_skipped",
+        id: payload.id,
+        hasUrl: Boolean(webhookUrl),
+        hasToken: Boolean(webhookToken),
+      }),
+    );
+    return "skipped";
+  }
+
+  try {
+    const webhookResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${webhookToken}`,
+      },
+      body: JSON.stringify({
+        id: payload.id,
+        email: payload.email,
+        stroke_count: payload.strokeCount,
+        point_count: payload.pointCount,
+        message_preview: payload.messagePreview,
+      }),
+      signal: AbortSignal.timeout(HI_WEBHOOK_TIMEOUT_MS),
+    });
+
+    if (webhookResponse.ok) {
+      console.log(JSON.stringify({ event: "webhook_sent", id: payload.id }));
+      return "sent";
+    }
+
+    console.log(
+      JSON.stringify({
+        event: "webhook_failed",
+        id: payload.id,
+        status: webhookResponse.status,
+      }),
+    );
+    return "failed";
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        event: "webhook_failed",
+        id: payload.id,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return "failed";
+  }
+}
+
+// Marks the row as notified so the scheduled sweep (which watches for
+// status='new' rows that never got a webhook) doesn't re-notify one the
+// live request already woke the bot for.
+async function markHiWebhookNotified(env: Env, id: string): Promise<void> {
+  try {
+    await env.DB.prepare(`UPDATE submissions SET webhook_notified_at = ? WHERE id = ?`)
+      .bind(new Date().toISOString(), id)
+      .run();
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        event: "webhook_notified_at_update_failed",
+        id,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
+}
+
+async function notifyHiWebhook(env: Env, payload: HiWebhookPayload): Promise<void> {
+  const result = await sendHiWebhook(env, payload);
+  if (result === "sent") {
+    await markHiWebhookNotified(env, payload.id);
+  }
+}
 
 async function notifyAgentCheckpoint(
   env: Env,
@@ -577,11 +655,7 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
        LIMIT 10`
     ).all<{ id: string; email: string; mail_subject: string; mail_body: string; message: string | null; created_at: string | null }>();
 
-    if (!results || results.length === 0) {
-      return;
-    }
-
-    for (const row of results) {
+    for (const row of results ?? []) {
       try {
         let emailBody: string;
         try {
@@ -690,6 +764,60 @@ async function scheduled(controller: ScheduledController, env: Env, ctx: Executi
     }
   } catch (err) {
     console.error("Scheduled handler error:", err);
+  }
+
+  try {
+    await sweepStaleHiWebhooks(env);
+  } catch (err) {
+    console.error("Hi webhook sweep error:", err);
+  }
+}
+
+// Grace window before a status='new' row is considered "stale" enough to
+// re-notify. Short on purpose: the live POST /hi path fires the webhook
+// itself within seconds, so this only ever fires for the rare case (a
+// hung fetch that got the whole waitUntil cancelled, a worker eviction,
+// etc.) where that never happened.
+const HI_WEBHOOK_SWEEP_GRACE_MS = 2 * 60 * 1000;
+const HI_WEBHOOK_SWEEP_LIMIT = 10;
+
+// Safety net for the bug this sweep exists to catch: a submission that
+// made it into D1/R2 (status stays 'new' until the bot that receives the
+// webhook moves it forward) but whose webhook never fired. Keys off the
+// existing status='new' + created_at columns; webhook_notified_at is the
+// only new state, and it is only ever used to avoid re-notifying a row
+// the live path (or an earlier sweep) already got a webhook out for, so a
+// live send racing a sweep send for the same row is harmless.
+async function sweepStaleHiWebhooks(env: Env): Promise<void> {
+  const staleBefore = new Date(Date.now() - HI_WEBHOOK_SWEEP_GRACE_MS).toISOString();
+
+  const { results } = await env.DB.prepare(
+    `SELECT id, email, message, stroke_count, point_count
+     FROM submissions
+     WHERE status = 'new'
+       AND webhook_notified_at IS NULL
+       AND created_at <= ?
+     ORDER BY created_at ASC
+     LIMIT ?`
+  )
+    .bind(staleBefore, HI_WEBHOOK_SWEEP_LIMIT)
+    .all<{ id: string; email: string; message: string; stroke_count: number; point_count: number }>();
+
+  for (const row of results ?? []) {
+    const messagePreview = row.message.length > 200 ? row.message.slice(0, 200) : row.message;
+
+    const result = await sendHiWebhook(env, {
+      id: row.id,
+      email: row.email,
+      strokeCount: row.stroke_count,
+      pointCount: row.point_count,
+      messagePreview,
+    });
+
+    if (result === "sent") {
+      await markHiWebhookNotified(env, row.id);
+      console.log(JSON.stringify({ event: "webhook_swept", id: row.id }));
+    }
   }
 }
 
