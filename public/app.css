@@ -141,7 +141,7 @@ label.field {
 input[type="email"],
 textarea {
   width: 100%;
-  max-width: 24rem;
+  max-width: 25rem;
   background: color-mix(in srgb, var(--paper) 6%, transparent);
   border: 1px solid color-mix(in srgb, var(--paper) 22%, transparent);
   color: var(--paper);

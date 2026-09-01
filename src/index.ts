@@ -35,7 +35,7 @@ const page = () => html`<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Brent Kirkland</title>
-    <meta name="description" content="Brent Kirkland. Currently employed @ Fastly. Building Security Products." />
+    <meta name="description" content="Brent Kirkland. Building security products @ Fastly." />
     ${agentCheckpoint()}
     <link rel="stylesheet" href="/app.css" />
     <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
@@ -45,7 +45,7 @@ const page = () => html`<!doctype html>
       <div class="prose">
         <h1>Brent Kirkland</h1>
         <p class="lede">
-          Currently employed @ <a href="https://www.fastly.com">Fastly</a>. Building Security Products.
+          Building security products @ <a href="https://www.fastly.com">Fastly</a>
         </p>
         <p class="pitch">
           Contact me by proving you're human with a drawing.
