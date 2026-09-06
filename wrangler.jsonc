@@ -4,7 +4,13 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-08-29",
   "assets": {
-    "directory": "public"
+    "directory": "public",
+    // robots.txt and sitemap.xml are also served as static files from
+    // public/, but routing these two paths through the Worker first makes
+    // sure our explicit routes win over any zone-level robots.txt
+    // injection (e.g. Cloudflare's AI content-signals feature) and keeps
+    // the sitemap generated from one source of truth in src/index.ts.
+    "run_worker_first": ["/robots.txt", "/sitemap.xml"]
   },
   "minify": true,
   "routes": [
