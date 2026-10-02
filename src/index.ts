@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { html, raw as rawHtml } from "hono/html";
+import { etag } from "hono/etag";
 
 interface Env extends CloudflareBindings {
   EMAIL: SendEmail;
@@ -11,6 +12,15 @@ interface Env extends CloudflareBindings {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.use("*", async (c, next) => {
+  await next();
+  setSecurityHeaders(c);
+});
+// No-ops on POST/non-2xx responses, so it only ever adds ETag/304 support
+// to the GET routes below (/, /drawings, /robots.txt, /sitemap.xml,
+// /drawings/:id/image).
+app.use("*", etag());
 
 const MIN_MESSAGE = 12;
 const MAX_MESSAGE = 2000;
@@ -32,8 +42,73 @@ const agentCheckpoint = () =>
 const SITE_URL = "https://brentkirkland.com";
 const SITE_NAME = "Brent Kirkland";
 const BIO_DESCRIPTION = "Brent Kirkland. Building security products @ Fastly.";
+// Longer than BIO_DESCRIPTION on purpose: this is what shows up in search
+// results and social cards, so it needs to clear the ~120-160 char range
+// crawlers expect. The Person JSON-LD below keeps the shorter bio instead,
+// since that's the "fact sheet" version, not the one being optimized for
+// a search snippet.
+const HOME_META_DESCRIPTION =
+  "Brent Kirkland builds security products at Fastly. Say hi by drawing something on the canvas, or browse the wall of drawings visitors have left.";
+const HOME_TITLE = "Brent Kirkland · Building security products at Fastly";
 const OG_IMAGE_URL = `${SITE_URL}/og.png`;
 const PERSON_SAME_AS = ["https://www.linkedin.com/in/brentland/", "https://github.com/brentkirkland"];
+
+// Permissions-Policy: deny the sensitive device/browser features this site
+// has no use for. Nothing here touches canvas drawing (Pointer Events
+// aren't permission-gated) or htmx (fetch/XHR aren't either).
+const PERMISSIONS_POLICY = [
+  "camera=()",
+  "microphone=()",
+  "geolocation=()",
+  "payment=()",
+  "usb=()",
+  "magnetometer=()",
+  "gyroscope=()",
+  "accelerometer=()",
+  "interest-cohort=()",
+].join(", ");
+
+// Enforced (not report-only) because the inventory of what this site loads
+// is small and fully accounted for:
+//   - script-src 'self': draw.js, gallery.js, and the vendored htmx build
+//     are all same-origin; the homepage's JSON-LD <script type="application/
+//     ld+json"> is exempt from script-src (non-JS script types aren't
+//     covered by the directive), and there are no other inline <script>s.
+//   - style-src needs 'unsafe-inline' because the drawing toolbar's color
+//     swatches set their swatch color via a `style="--swatch:#..."`
+//     attribute; nothing here can execute script, so this is a low-risk
+//     allowance.
+//   - img-src covers /og.png, /favicon.svg, and /drawings/:id/image (all
+//     same-origin); `data:` is allowed defensively even though the drawing
+//     data URL is only ever used as a hidden input value, never an <img src>.
+//   - connect-src 'self' covers htmx's fetch to POST /hi.
+//   - frame-ancestors 'none' backs up X-Frame-Options: DENY.
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+// Applied to every Worker-generated response (HTML pages, the /hi fragment,
+// /agent JSON, /robots.txt, /sitemap.xml, and /drawings/:id/image). Static
+// files served directly from public/ (app.css, draw.js, htmx.min.js, etc.)
+// go through Workers' asset layer instead of this Worker script, so the
+// same headers are mirrored for those in public/_headers.
+const setSecurityHeaders = (c: { header: (name: string, value: string) => void }) => {
+  c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  c.header("X-Frame-Options", "DENY");
+  c.header("Permissions-Policy", PERMISSIONS_POLICY);
+  c.header("Content-Security-Policy", CONTENT_SECURITY_POLICY);
+};
 
 // Shared Open Graph / Twitter card tags, plus a Person JSON-LD (and WebSite,
 // via @graph) so crawlers get the short bio as structured data without it
@@ -87,20 +162,22 @@ const page = () => html`<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Brent Kirkland</title>
-    <meta name="description" content="${BIO_DESCRIPTION}" />
-    ${seoHead({ path: "/", title: "Brent Kirkland", description: BIO_DESCRIPTION })}
+    <title>${HOME_TITLE}</title>
+    <meta name="description" content="${HOME_META_DESCRIPTION}" />
+    ${seoHead({ path: "/", title: HOME_TITLE, description: HOME_META_DESCRIPTION })}
     ${agentCheckpoint()}
     <link rel="stylesheet" href="/app.css" />
-    <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
+    <script src="/htmx.min.js" defer></script>
   </head>
   <body>
     <main>
       <div class="prose">
-        <h1>Brent Kirkland</h1>
-        <p class="lede">
-          Building security products @ <a href="https://www.fastly.com">Fastly</a>
-        </p>
+        <header>
+          <h1>Brent Kirkland</h1>
+          <p class="lede">
+            Building security products @ <a href="https://www.fastly.com">Fastly</a>
+          </p>
+        </header>
         <p class="pitch">
           Contact me by proving you're human with a drawing.
         </p>
@@ -150,11 +227,13 @@ const page = () => html`<!doctype html>
       </form>
 
       <footer>
-        <a href="https://www.linkedin.com/in/brentland/">LinkedIn</a>
-        <span class="dot">·</span>
-        <a href="https://github.com/brentkirkland/brentkirklandcom">Source</a>
-        <span class="dot">·</span>
-        <a href="/drawings">Drawings</a>
+        <nav aria-label="Site links">
+          <a href="https://www.linkedin.com/in/brentland/">LinkedIn</a>
+          <span class="dot">·</span>
+          <a href="https://github.com/brentkirkland/brentkirklandcom">Source</a>
+          <span class="dot">·</span>
+          <a href="/drawings">Drawings</a>
+        </nav>
       </footer>
     </main>
     <script src="/draw.js"></script>
@@ -193,16 +272,18 @@ const drawingsPage = (items: Array<{ id: string }>) => html`<!doctype html>
                     src="/drawings/${item.id}/image"
                     alt="Visitor drawing"
                     loading="lazy"
-                    onerror="this.parentElement.remove()"
                   />
                   <p class="gallery-id">${item.id.slice(0, 8)}</p>
                 </li>`,
             )}
           </ul>`}
       <footer>
-        <a href="/">Home</a>
+        <nav aria-label="Site links">
+          <a href="/">Home</a>
+        </nav>
       </footer>
     </main>
+    <script src="/gallery.js" defer></script>
   </body>
 </html>`;
 
@@ -254,7 +335,15 @@ const looksHandDrawn = (strokes: Stroke[]): boolean => {
   return false;
 };
 
-app.get("/", (c) => c.html(page()));
+// "no-cache" (not "no-store") lets the browser keep a copy but requires it
+// to revalidate every time, which the etag() middleware above turns into a
+// cheap 304 instead of a full re-download when the HTML hasn't changed.
+const HTML_CACHE_CONTROL = "no-cache, must-revalidate";
+
+app.get("/", (c) => {
+  c.header("Cache-Control", HTML_CACHE_CONTROL);
+  return c.html(page());
+});
 
 // Cloudflare's account-level AI content-signals feature injects its own
 // robots.txt (with no Allow/Sitemap) ahead of the static asset for this
@@ -266,7 +355,10 @@ Sitemap: ${SITE_URL}/sitemap.xml
 `;
 
 app.get("/robots.txt", (c) =>
-  c.text(ROBOTS_TXT, 200, { "Content-Type": "text/plain; charset=utf-8" }),
+  c.text(ROBOTS_TXT, 200, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "public, max-age=300, must-revalidate",
+  }),
 );
 
 app.get("/sitemap.xml", (c) => {
@@ -276,7 +368,10 @@ app.get("/sitemap.xml", (c) => {
     .join("\n");
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlset}\n</urlset>\n`;
 
-  return c.text(xml, 200, { "Content-Type": "application/xml; charset=utf-8" });
+  return c.text(xml, 200, {
+    "Content-Type": "application/xml; charset=utf-8",
+    "Cache-Control": "public, max-age=300, must-revalidate",
+  });
 });
 
 app.get("/drawings", async (c) => {
@@ -287,6 +382,7 @@ app.get("/drawings", async (c) => {
      LIMIT 300`,
   ).all<{ id: string }>();
 
+  c.header("Cache-Control", HTML_CACHE_CONTROL);
   return c.html(drawingsPage(results ?? []));
 });
 
