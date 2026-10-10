@@ -1,0 +1,19 @@
+---
+globs: migrations/**/*.sql
+alwaysApply: false
+---
+
+- Name new files `NNNN_short_description.sql`, continuing the existing zero-padded sequence. Never
+  edit or renumber a migration that has already shipped — add a new one.
+- Migrations are forward-only. There is no down/rollback mechanism, so prefer additive changes
+  (`ALTER TABLE … ADD COLUMN`) and make new columns nullable, since the table already has rows.
+- Write idempotently where SQLite allows it (`CREATE TABLE IF NOT EXISTS`,
+  `CREATE INDEX IF NOT EXISTS`).
+- Apply and verify against the local database before opening a PR:
+
+```bash
+npx wrangler d1 migrations apply brentkirklandcom --local
+```
+
+- The same migration then has to be applied to the remote database (`--remote`) — CI does **not**
+  do it as part of deploy, and production and PR previews share that one database.
