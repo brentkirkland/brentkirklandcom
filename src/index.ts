@@ -8,7 +8,6 @@ interface Env extends CloudflareBindings {
   HI_WEBHOOK_TOKEN?: string;
   AGENT_CHECKPOINT_WEBHOOK_URL?: string;
   AGENT_CHECKPOINT_WEBHOOK_SECRET?: string;
-  ENVIRONMENT?: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
