@@ -385,6 +385,32 @@ app.get("/drawings", async (c) => {
   return c.html(drawingsPage(results ?? []));
 });
 
+interface AgentGeo {
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  asn: number | null;
+  asOrganization: string | null;
+}
+
+const cfText = (value: unknown, max: number): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, max) : null;
+};
+
+// request.cf is missing in local wrangler/tests and the Workers playground.
+const agentGeoFromRequest = (request: Request): AgentGeo => {
+  const cf = request.cf;
+  return {
+    country: cfText(cf?.country, 8),
+    region: cfText(cf?.region, 128),
+    city: cfText(cf?.city, 128),
+    asn: typeof cf?.asn === "number" && Number.isFinite(cf.asn) ? cf.asn : null,
+    asOrganization: cfText(cf?.asOrganization, 256),
+  };
+};
+
 app.post("/agent", async (c) => {
   let body: unknown;
   try {
@@ -411,6 +437,7 @@ app.post("/agent", async (c) => {
   const tokenMatched = token === AGENT_TOKEN;
   const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
   const userAgent = (c.req.header("User-Agent") ?? "").slice(0, 512);
+  const geo = agentGeoFromRequest(c.req.raw);
 
   const since = new Date(Date.now() - AGENT_RATE_WINDOW_MS).toISOString();
   const countRow = await c.env.DB.prepare(
@@ -424,8 +451,8 @@ app.post("/agent", async (c) => {
   const createdAt = new Date().toISOString();
 
   await c.env.DB.prepare(
-    `INSERT INTO agent_checkins (id, created_at, ip, user_agent, why, token, token_matched, source, rate_limited)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO agent_checkins (id, created_at, ip, user_agent, why, token, token_matched, source, rate_limited, country, region, city, asn, as_organization)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       id,
@@ -437,6 +464,11 @@ app.post("/agent", async (c) => {
       tokenMatched ? 1 : 0,
       source || null,
       rateLimited ? 1 : 0,
+      geo.country,
+      geo.region,
+      geo.city,
+      geo.asn,
+      geo.asOrganization,
     )
     .run();
 
@@ -463,6 +495,7 @@ app.post("/agent", async (c) => {
       createdAt,
       source,
       ip,
+      ...geo,
     }),
   );
 
@@ -726,7 +759,7 @@ async function notifyAgentCheckpoint(
     createdAt: string;
     source: string;
     ip: string;
-  },
+  } & AgentGeo,
 ): Promise<void> {
   const webhookUrl = env.AGENT_CHECKPOINT_WEBHOOK_URL?.trim();
   const webhookSecret = env.AGENT_CHECKPOINT_WEBHOOK_SECRET
@@ -759,6 +792,11 @@ async function notifyAgentCheckpoint(
         timestamp: payload.createdAt,
         source: payload.source || undefined,
         ip: payload.ip,
+        country: payload.country,
+        region: payload.region,
+        city: payload.city,
+        asn: payload.asn,
+        asOrganization: payload.asOrganization,
       }),
     });
 
